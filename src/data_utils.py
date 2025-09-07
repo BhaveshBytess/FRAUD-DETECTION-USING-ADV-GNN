@@ -13,7 +13,7 @@ def load_csv_nodes_edges(nodes_csv, edges_csv):
 def build_hetero_data(nodes_df, edges_df,
                       node_type_col='type', node_id_col='id',
                       src_col='src', dst_col='dst', edge_type_col='etype',
-                      time_col='time', label_col='label'):
+                      time_col='time', label_col='label', labels_df=None):
     """
     Minimal converter: returns a PyG HeteroData object.
     Assumes nodes_df has: id, type, features... ; edges_df has: src, dst, etype, time, features...
@@ -26,6 +26,11 @@ def build_hetero_data(nodes_df, edges_df,
         nt_nodes = nodes_df[nodes_df[node_type_col] == nt]
         node_mappings[nt] = {old_id: new_id for new_id, old_id in enumerate(nt_nodes[node_id_col])}
 
+    # If labels are provided, merge them into the nodes_df
+    if labels_df is not None:
+        # Assuming labels_df has [node_id_col, label_col]
+        nodes_df = pd.merge(nodes_df, labels_df, on=node_id_col, how='left')
+
     # Build node collections by type
     for nt, mapping in node_mappings.items():
         nt_df = nodes_df[nodes_df[node_type_col] == nt]
@@ -35,6 +40,12 @@ def build_hetero_data(nodes_df, edges_df,
         if 'feature_0' in nt_df.columns:
             feats = torch.tensor(nt_df.filter(regex='^feature_').values, dtype=torch.float)
             data[nt].x = feats
+        
+        # Store labels if present
+        if label_col in nt_df.columns:
+            # Fill NaNs with a value indicating no label, e.g., -1
+            labels = torch.tensor(nt_df[label_col].fillna(-1).values, dtype=torch.long)
+            data[nt].y = labels
 
     # Build edges per relation
     for rel in edges_df[edge_type_col].unique():

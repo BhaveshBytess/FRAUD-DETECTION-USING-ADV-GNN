@@ -1,198 +1,196 @@
 # src/train_baseline.py
 import argparse, torch, json, os
 from torch import optim
-# This is a placeholder for the actual data loading function.
-# We will need to adapt this to work with our HeteroData object.
-from src.data_utils import build_hetero_data
-from src.models.gcn_baseline import SimpleGCN
-from src.models.rgcn_baseline import SimpleRGCN
-from src.metrics import compute_metrics
+from torch_geometric.data import Data
+from models.gcn_baseline import SimpleGCN
+from models.graphsage_baseline import SimpleGraphSAGE
+from models.rgcn_baseline import SimpleRGCN
+from metrics import compute_metrics
 import yaml
 
-def load_data(data_path, sample_n=None):
+def load_data(data_path, model_name, sample_n=None):
     """
-    A placeholder function to load data.
-    This will need to be adapted to convert the HeteroData object
-    into a homogeneous graph for the GCN baseline.
+    Loads the HeteroData object and prepares it for training.
+    - For GCN/GraphSAGE, it creates a homogeneous graph of transaction nodes.
+    - For RGCN, it returns the full HeteroData object.
+    - It also filters for known labels and remaps them to binary.
     """
     data = torch.load(data_path, weights_only=False)
+    tx_data = data['transaction']
+
+    # --- Label Preprocessing & Mask Creation ---
+    known_mask = tx_data.y != 3
+
+    # Ensure masks exist on the transaction data store
+    if not hasattr(tx_data, 'train_mask') or tx_data.train_mask is None:
+        num_tx_nodes = tx_data.num_nodes
+        perm = torch.randperm(num_tx_nodes)
+        train_mask = torch.zeros(num_tx_nodes, dtype=torch.bool); train_mask[perm[:int(0.7*num_tx_nodes)]] = True
+        val_mask = torch.zeros(num_tx_nodes, dtype=torch.bool); val_mask[perm[int(0.7*num_tx_nodes):int(0.85*num_tx_nodes)]] = True
+        test_mask = torch.zeros(num_tx_nodes, dtype=torch.bool); test_mask[perm[int(0.85*num_tx_nodes):]] = True
+        tx_data.train_mask = train_mask
+        tx_data.val_mask = val_mask
+        tx_data.test_mask = test_mask
     
-    # For the simple GCN baseline, we'll use only the 'transaction' nodes
-    # and their features. This is a simplification.
-    if 'transaction' in data.node_types:
-        # Create a homogeneous graph from the transaction nodes
-        # and the edges that connect them.
-        
-        # Get the transaction nodes
-        x = data['transaction'].x
-        
-        if hasattr(data['transaction'], 'y'):
-            y = data['transaction'].y
-        else:
-            print("Warning: 'y' attribute not found for 'transaction' nodes. Creating dummy labels.")
-            y = torch.randint(0, 2, (x.shape[0],))
-        
-        # Get the edges between transaction nodes
-        # This assumes a 'transaction__to__transaction' edge type, which may not exist.
-        # We will need to adapt this based on the actual edge types.
-        # For now, we'll create a dummy edge_index.
-        # A more robust solution would be to use a specific edge type or
-        # create a homogeneous graph from the heterogeneous one.
-        
-        # Find an edge type that connects transactions, or just use all edges
-        # and map them to a single node space.
-        
-        # Let's find the first edge type that connects to 'transaction'
-        edge_type_key = None
-        for key in data.edge_types:
-            if 'transaction' in key:
-                edge_type_key = key
-                break
-        
-        if edge_type_key:
-            edge_index = data[edge_type_key].edge_index
-        else:
-            # If no direct transaction edges, we can't proceed with this simple logic.
-            # For now, let's create a dummy edge index for shape purposes.
-            # This will need to be fixed.
-            print("Warning: Could not find a suitable edge type for the GCN baseline. Using dummy edges.")
-            edge_index = torch.randint(0, x.shape[0], (2, 100))
+    y = tx_data.y[known_mask].clone()
+    y[y == 1] = 0  # licit
+    y[y == 2] = 1  # illicit
+    
+    x = tx_data.x[known_mask]
+    x[torch.isnan(x)] = 0 # Impute NaNs
 
-
-        # Create masks if they don't exist
-        num_nodes = x.shape[0]
-        if 'train_mask' not in data['transaction']:
-            # Create a simple time-based split if 'time' is available
-            if 'time' in data['transaction']:
-                time = data['transaction'].time
-                sorted_time_indices = torch.argsort(time)
-                train_end = int(num_nodes * 0.7)
-                val_end = int(num_nodes * 0.85)
-                
-                train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                train_mask[sorted_time_indices[:train_end]] = True
-                
-                val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                val_mask[sorted_time_indices[train_end:val_end]] = True
-
-                test_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                test_mask[sorted_time_indices[val_end:]] = True
-            else: # fallback to random split
-                perm = torch.randperm(num_nodes)
-                train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                train_mask[perm[:int(0.7*num_nodes)]] = True
-                val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                val_mask[perm[int(0.7*num_nodes):int(0.85*num_nodes)]] = True
-                test_mask = torch.zeros(num_nodes, dtype=torch.bool)
-                test_mask[perm[int(0.85*num_nodes):]] = True
-        else:
-            train_mask = data['transaction'].train_mask
-            val_mask = data['transaction'].val_mask
-            test_mask = data['transaction'].test_mask
-
-        # Create a simple Data object for the GCN
-        from torch_geometric.data import Data
-        homo_data = Data(x=x, edge_index=edge_index, y=y, 
-                         train_mask=train_mask, val_mask=val_mask, test_mask=test_mask)
+    if model_name in ['gcn', 'graphsage']:
+        homo_data = Data(x=x, edge_index=torch.empty((2, 0), dtype=torch.long), y=y)
         
+        homo_data.train_mask = tx_data.train_mask[known_mask]
+        homo_data.val_mask = tx_data.val_mask[known_mask]
+        homo_data.test_mask = tx_data.test_mask[known_mask]
+
         if sample_n:
-            # Sub-sampling logic needs to be carefully implemented to preserve graph structure
-            # For now, we will just use the first N nodes and their induced subgraph.
-            # This is a simplification and may not be the best approach.
-            from torch_geometric.utils import k_hop_subgraph
-            subset = torch.arange(min(sample_n, homo_data.num_nodes))
-            subset, edge_index, _, _ = k_hop_subgraph(subset, 2, homo_data.edge_index, relabel_nodes=True)
+            num_nodes_to_sample = min(sample_n, homo_data.num_nodes)
+            perm = torch.randperm(homo_data.num_nodes)[:num_nodes_to_sample]
             
-            homo_data.x = homo_data.x[subset]
-            homo_data.y = homo_data.y[subset]
-            homo_data.edge_index = edge_index
-            homo_data.train_mask = homo_data.train_mask[subset]
-            homo_data.val_mask = homo_data.val_mask[subset]
-            homo_data.test_mask = homo_data.test_mask[subset]
-            homo_data.num_nodes = subset.size(0)
-
-
+            sampled_data = Data(x=homo_data.x[perm], edge_index=torch.empty((2, 0), dtype=torch.long), y=homo_data.y[perm])
+            sampled_data.train_mask = homo_data.train_mask[perm]
+            sampled_data.val_mask = homo_data.val_mask[perm]
+            sampled_data.test_mask = homo_data.test_mask[perm]
+            return sampled_data
         return homo_data
-    else:
-        raise ValueError("The provided data object does not have 'transaction' nodes.")
 
+    elif model_name == 'rgcn':
+        # For RGCN, we need the full graph but with filtered nodes
+        # This is more complex; for now, we'll pass the full data and handle it in train
+        return data
 
 def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() and args.device=='cuda' else 'cpu')
     
-    # Load config if provided
     if args.config:
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
-            # Override args with config values
             for key, value in config.items():
                 setattr(args, key, value)
 
-    data = load_data(args.data_path, sample_n=args.sample)
+    data = load_data(args.data_path, model_name=args.model, sample_n=args.sample)
     
-    x, edge_index = data.x.to(device), data.edge_index.to(device)
-    y = data.y.to(device)
-    train_mask, val_mask, test_mask = data.train_mask.to(device), data.val_mask.to(device), data.test_mask.to(device)
-    
-    model = SimpleGCN(in_dim=x.size(1), hidden_dim=args.hidden_dim, out_dim=1).to(device)
-    opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    
-    print("Starting training...")
-    for epoch in range(args.epochs):
-        model.train()
-        logits = model(x, edge_index).squeeze()
+    if args.model in ['gcn', 'graphsage']:
+        data = data.to(device)
+        x, edge_index, y = data.x, data.edge_index, data.y
+        train_mask, val_mask, test_mask = data.train_mask, data.val_mask, data.test_mask
         
-        # Handle potential NaN or missing labels in y
-        valid_mask = train_mask & ~torch.isnan(y)
-        if valid_mask.sum() == 0:
-            print(f"Epoch {epoch}: No valid training labels, skipping.")
-            continue
-
-        loss = torch.nn.BCEWithLogitsLoss()(logits[valid_mask], y[valid_mask].float())
+        if args.model == 'gcn':
+            model = SimpleGCN(in_dim=x.size(1), hidden_dim=args.hidden_dim, out_dim=1).to(device)
+        else: # graphsage
+            model = SimpleGraphSAGE(in_dim=x.size(1), hidden_dim=args.hidden_dim, out_dim=1).to(device)
         
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
+        opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         
-        # eval
-        model.eval()
-        with torch.no_grad():
-            val_logits = model(x, edge_index).squeeze()
+        print(f"Starting training for {args.model}...")
+        for epoch in range(args.epochs):
+            model.train()
+            logits = model(x, edge_index).squeeze()
+            loss = torch.nn.BCEWithLogitsLoss()(logits[train_mask], y[train_mask].float())
+            opt.zero_grad(); loss.backward(); opt.step()
             
-            valid_val_mask = val_mask & ~torch.isnan(y)
-            if valid_val_mask.sum() > 0:
-                val_probs = torch.sigmoid(val_logits[valid_val_mask]).cpu().numpy()
-                val_true = y[valid_val_mask].cpu().numpy()
+            model.eval()
+            with torch.no_grad():
+                val_logits = model(x, edge_index).squeeze()
+                val_probs = torch.sigmoid(val_logits[val_mask]).cpu().numpy()
+                val_true = y[val_mask].cpu().numpy()
                 metrics = compute_metrics(val_true, val_probs)
                 print(f"Epoch {epoch} loss {loss.item():.4f} val_auc {metrics['auc']:.4f}")
-            else:
-                print(f"Epoch {epoch} loss {loss.item():.4f} (no validation labels)")
 
+    elif args.model == 'rgcn':
+        # RGCN requires HeteroData
+        data = data.to(device)
+        
+        # --- Pre-filter data on transaction nodes ---
+        tx_data = data['transaction']
+        known_mask = tx_data.y != 3
+        
+        y = tx_data.y[known_mask].clone()
+        y[y == 1] = 0  # licit
+        y[y == 2] = 1  # illicit
+        
+        # These masks are now correctly sized for the filtered 'y'
+        train_mask = tx_data.train_mask[known_mask]
+        val_mask = tx_data.val_mask[known_mask]
+        test_mask = tx_data.test_mask[known_mask]
 
+        # --- Convert to homogeneous ---
+        print("Warning: RGCN baseline is simplified. It trains on all node types but only evaluates on transactions.")
+        homo_data = data.to_homogeneous()
+        x = homo_data.x
+        edge_index = homo_data.edge_index
+        x[torch.isnan(x)] = 0
+
+        # --- Handle edge_type ---
+        if edge_index is None:
+            edge_index = torch.empty((2, 0), dtype=torch.long).to(device)
+            edge_type = torch.empty(0, dtype=torch.long).to(device)
+        else:
+            # Recreate edge_type from scratch based on data.edge_stores
+            edge_type = torch.zeros(edge_index.size(1), dtype=torch.long, device=device)
+            offset = 0
+            for i, store in enumerate(data.edge_stores):
+                if hasattr(store, 'edge_index'):
+                    num_edges = store.edge_index.size(1)
+                    edge_type[offset : offset + num_edges] = i
+                    offset += num_edges
+        
+        # --- Identify transaction nodes in the homogeneous graph ---
+        tx_node_type_index = data.node_types.index('transaction')
+        tx_mask_homo = (homo_data.node_type == tx_node_type_index)
+
+        model = SimpleRGCN(in_dim=x.size(1), hidden_dim=args.hidden_dim, out_dim=1, num_relations=len(data.edge_types)).to(device)
+        opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+        print(f"Starting training for {args.model}...")
+        for epoch in range(args.epochs):
+            model.train()
+            logits = model(x, edge_index, edge_type).squeeze()
+            
+            # Get logits for transaction nodes that have known labels
+            tx_logits_all = logits[tx_mask_homo]
+            tx_logits_known = tx_logits_all[known_mask]
+
+            loss = torch.nn.BCEWithLogitsLoss()(tx_logits_known[train_mask], y[train_mask].float())
+            opt.zero_grad(); loss.backward(); opt.step()
+
+            model.eval()
+            with torch.no_grad():
+                val_logits = model(x, edge_index, edge_type).squeeze()[tx_mask_homo][known_mask]
+                val_probs = torch.sigmoid(val_logits[val_mask]).cpu().numpy()
+                val_true = y[val_mask].cpu().numpy()
+                metrics = compute_metrics(val_true, val_probs)
+                print(f"Epoch {epoch} loss {loss.item():.4f} val_auc {metrics['auc']:.4f}")
+    
     os.makedirs(args.out_dir, exist_ok=True)
     torch.save(model.state_dict(), os.path.join(args.out_dir, 'ckpt.pth'))
     
-    # Final evaluation on test set
+    # Final evaluation
     model.eval()
     with torch.no_grad():
-        test_logits = model(x, edge_index).squeeze()
-        valid_test_mask = test_mask & ~torch.isnan(y)
-        if valid_test_mask.sum() > 0:
-            test_probs = torch.sigmoid(test_logits[valid_test_mask]).cpu().numpy()
-            test_true = y[valid_test_mask].cpu().numpy()
-            final_metrics = compute_metrics(test_true, test_probs)
-            print("Final Test Metrics:", final_metrics)
-            with open(os.path.join(args.out_dir, 'metrics.json'), 'w') as f:
-                json.dump(final_metrics, f)
-        else:
-            print("No valid test labels for final evaluation.")
-
+        if args.model in ['gcn', 'graphsage']:
+            test_logits = model(x, edge_index).squeeze()
+            test_probs = torch.sigmoid(test_logits[test_mask]).cpu().numpy()
+            test_true = y[test_mask].cpu().numpy()
+        elif args.model == 'rgcn':
+            test_logits = model(x, edge_index, edge_type).squeeze()[tx_mask_homo][known_mask]
+            test_probs = torch.sigmoid(test_logits[test_mask]).cpu().numpy()
+            test_true = y[test_mask].cpu().numpy()
+            
+        final_metrics = compute_metrics(test_true, test_probs)
+        print("Final Test Metrics:", final_metrics)
+        with open(os.path.join(args.out_dir, 'metrics.json'), 'w') as f:
+            json.dump(final_metrics, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, help='Path to YAML config file')
-    parser.add_argument('--data_path', type=str, default='data/ellipticpp.pt')
+    parser.add_argument('--data_path', type=str, default='data/ellipticpp/ellipticpp.pt')
     parser.add_argument('--out_dir', default='experiments/baseline/lite')
+    parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn'])
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--hidden_dim', type=int, default=128)

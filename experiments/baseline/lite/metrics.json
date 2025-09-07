@@ -1,1 +1,1 @@
-{"auc": 0.0, "pr_auc": 0.0, "f1": 0.0, "precision": 0.0, "recall": 0.0, "error": "Only one class present in y_true."}
+{"auc": 0.49230769230769234, "pr_auc": 0.9142996769487629, "f1": 0.9558823529411765, "precision": 0.9154929577464789, "recall": 1.0}
