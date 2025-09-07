@@ -1,0 +1,7 @@
+src,dst,etype,time
+1,4,user->merchant,1
+1,5,user->merchant,2
+2,4,user->merchant,3
+2,5,user->merchant,4
+3,4,user->merchant,5
+3,5,user->merchant,6
