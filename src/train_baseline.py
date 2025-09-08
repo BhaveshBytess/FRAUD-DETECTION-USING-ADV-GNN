@@ -6,6 +6,7 @@ from models.gcn_baseline import SimpleGCN
 from models.graphsage_baseline import SimpleGraphSAGE
 from models.rgcn_baseline import SimpleRGCN
 from metrics import compute_metrics
+from utils import set_seed
 import yaml
 
 def load_data(data_path, model_name, sample_n=None):
@@ -63,13 +64,17 @@ def load_data(data_path, model_name, sample_n=None):
         return data
 
 def train(args):
+    # Set seed for reproducibility
+    set_seed(args.seed)
+    
     device = torch.device('cuda' if torch.cuda.is_available() and args.device=='cuda' else 'cpu')
     
     if args.config:
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
             for key, value in config.items():
-                setattr(args, key, value)
+                if value is not None:  # Don't override with None values
+                    setattr(args, key, value)
 
     data = load_data(args.data_path, model_name=args.model, sample_n=args.sample)
     
@@ -197,5 +202,6 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', type=float, default=1e-5)
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--sample', type=int, default=None)  # lite mode
+    parser.add_argument('--seed', type=int, default=42)  # reproducibility
     args = parser.parse_args()
     train(args)

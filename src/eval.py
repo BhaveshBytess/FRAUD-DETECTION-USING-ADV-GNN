@@ -101,7 +101,7 @@ if __name__ == '__main__':
     parser.add_argument('--ckpt', required=True, help='Path to the model checkpoint (.pth file)')
     parser.add_argument('--data_path', default='data/ellipticpp/ellipticpp.pt', help='Path to the data file')
     parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn'])
-    parser.add_argument('--hidden_dim', type=int, default=128, help='Hidden dimension of the model')
+    parser.add_argument('--hidden_dim', type=int, default=64, help='Hidden dimension of the model (must match training)')
     parser.add_argument('--sample', type=int, default=None, help='Subsample N nodes for quick evaluation (lite mode)')
     args = parser.parse_args()
     evaluate(args)
