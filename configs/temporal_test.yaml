@@ -1,0 +1,39 @@
+# Quick test configuration for Stage 4 temporal models
+# Reduced parameters for quick testing
+
+model:
+  type: "lstm"
+  hidden_dim: 64
+  num_layers: 1
+  dropout: 0.2
+  bidirectional: true
+  use_attention: true
+
+dataset:
+  window_size: 2  # Smaller window for faster testing
+  max_seq_len: 50
+  add_temporal_feats: true
+
+training:
+  epochs: 3  # Just a few epochs for testing
+  batch_size: 8
+  lr: 0.001
+  weight_decay: 1e-5
+  grad_clip: 1.0
+  early_stopping_patience: 5
+  num_workers: 0
+
+optimizer:
+  type: "adam"
+  lr: 0.001
+  weight_decay: 1e-5
+
+scheduler:
+  enabled: false  # Disable for quick test
+
+loss:
+  type: "cross_entropy"
+  class_weights: [1.0, 2.0]
+
+evaluation:
+  metrics: ["auc", "f1", "precision", "recall"]
