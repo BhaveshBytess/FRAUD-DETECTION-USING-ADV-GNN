@@ -1,0 +1,11 @@
+# RGCN Baseline Configuration
+model: rgcn
+data_path: data/ellipticpp/ellipticpp.pt
+out_dir: experiments/baseline/lite_rgcn
+epochs: 5
+lr: 0.001
+hidden_dim: 64
+weight_decay: 0.00001
+device: cuda
+sample: null  # RGCN works on full hetero graph structure
+seed: 42
