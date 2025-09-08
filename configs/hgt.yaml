@@ -1,0 +1,39 @@
+# HGT (Hierarchical Graph Transformer) Configuration
+# Paper: "Heterogeneous Graph Transformer" (https://arxiv.org/abs/2003.01332)
+
+model: 'hgt'
+epochs: 100
+lr: 0.001
+hidden_dim: 128
+weight_decay: 0.00001
+device: 'cuda'
+seed: 42
+
+# HGT-specific parameters
+num_heads: 4
+num_layers: 2
+dropout: 0.1
+
+# Data parameters
+data_path: 'data/ellipticpp/ellipticpp.pt'
+out_dir: 'experiments/baseline/hgt'
+
+# Sampling for lite mode (set to smaller value for local testing)
+sample: 5000  # Use smaller subset for 8GB RAM constraint
+
+# Node type info for heterogeneous graph
+node_types:
+  - 'transaction'
+  - 'address'
+
+# Edge type info for heterogeneous graph  
+edge_types:
+  - 'tx_to_tx'
+  - 'tx_to_addr'
+  - 'addr_to_tx'
+  - 'addr_to_addr'
+
+# Performance optimization for local hardware
+batch_size: 512
+grad_accumulation_steps: 2
+mixed_precision: True
