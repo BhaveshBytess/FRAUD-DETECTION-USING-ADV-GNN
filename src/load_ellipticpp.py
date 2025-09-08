@@ -1,20 +1,32 @@
 # src/load_ellipticpp.py
 import argparse
 import torch
-from src.adapters.ellipticpp_adapter import load_ellipticpp_raw, map_to_canonical
-from src.data_utils import build_hetero_data
+import pandas as pd
+from adapters.ellipticpp_adapter import load_ellipticpp_raw, map_to_canonical
+from data_utils import build_hetero_data
 
 def main(path, out=None, sample_n=None):
     raw = load_ellipticpp_raw(path)
     nodes_df, edges_df, labels_df = map_to_canonical(raw)
+
     # Optionally sample small subset for quick testing
     if sample_n:
-        nodes_df = nodes_df.head(sample_n)
-        # filter edges involving these nodes
-        edges_df = edges_df[edges_df['src'].isin(nodes_df['orig_id']) | edges_df['dst'].isin(nodes_df['orig_id'])]
+        # We must sample the LABELED nodes to have a useful sample
+        labeled_node_ids = labels_df['orig_id'].unique()
+        
+        # Filter nodes_df to only include nodes that have labels
+        nodes_df = nodes_df[nodes_df['orig_id'].isin(labeled_node_ids)]
+
+        # Further sample if needed
+        if len(nodes_df) > sample_n:
+            nodes_df = nodes_df.sample(n=sample_n, random_state=42)
+
+        # filter labels to match the sampled nodes
+        labels_df = labels_df[labels_df['orig_id'].isin(nodes_df['orig_id'])]
+
     
     # The column 'orig_id' from the adapter is the 'id' our builder expects
-    data = build_hetero_data(nodes_df, edges_df, node_id_col='orig_id')
+    data = build_hetero_data(nodes_df, edges_df, node_id_col='orig_id', labels_df=labels_df)
     print("HeteroData created with node types:", data.node_types)
     if out:
         torch.save(data, out)

@@ -1,0 +1,18 @@
+# configs/baseline.yaml
+# Configuration for the baseline GCN model training
+
+# Data parameters
+data_path: 'data/ellipticpp.pt'
+sample: 1000  # Use a subset of data for quick runs, set to null for full dataset
+
+# Model parameters
+hidden_dim: 128
+weight_decay: 1.0e-5
+
+# Training parameters
+epochs: 5
+lr: 1.0e-3
+device: 'cuda' # 'cuda' or 'cpu'
+
+# Output directory
+out_dir: 'experiments/baseline/lite'

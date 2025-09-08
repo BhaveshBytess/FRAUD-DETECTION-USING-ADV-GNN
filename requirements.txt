@@ -10,3 +10,7 @@ networkx
 matplotlib
 pytest
 python-dotenv
+xgboost
+tensorboard
+wandb
+PyYAML
