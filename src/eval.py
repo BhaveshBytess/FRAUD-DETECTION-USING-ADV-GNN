@@ -5,6 +5,8 @@ import json
 from models.gcn_baseline import SimpleGCN
 from models.graphsage_baseline import SimpleGraphSAGE
 from models.rgcn_baseline import SimpleRGCN
+from models.hgt_baseline import SimpleHGT
+from models.han_baseline import SimpleHAN
 from train_baseline import load_data
 from metrics import compute_metrics
 
@@ -93,6 +95,66 @@ def evaluate(args):
             true_labels = y[test_mask].cpu().numpy()
             metrics = compute_metrics(true_labels, probs)
 
+    elif args.model in ['hgt', 'han']:
+        data = data.to(device)
+        
+        # For heterogeneous models, we need x_dict and edge_index_dict
+        x_dict = {}
+        for node_type in data.node_types:
+            if hasattr(data[node_type], 'x'):
+                x_dict[node_type] = data[node_type].x
+                x_dict[node_type][torch.isnan(x_dict[node_type])] = 0
+        
+        edge_index_dict = {}
+        for edge_type in data.edge_types:
+            edge_store = data[edge_type]
+            if hasattr(edge_store, 'edge_index') and edge_store.edge_index is not None:
+                edge_index_dict[edge_type] = edge_store.edge_index
+        
+        # Get transaction data for evaluation
+        tx_data = data['transaction']
+        
+        # Ensure test mask exists
+        if not hasattr(tx_data, 'test_mask') or tx_data.test_mask is None:
+            num_tx_nodes = tx_data.num_nodes
+            perm = torch.randperm(num_tx_nodes)
+            tx_data.test_mask = torch.zeros(num_tx_nodes, dtype=torch.bool)
+            tx_data.test_mask[perm[int(0.85*num_tx_nodes):]] = True
+        
+        # Filter known labels (exclude class 3 - unknown)
+        known_mask = tx_data.y != 3
+        y = tx_data.y[known_mask].clone()
+        y[y == 1] = 0  # licit
+        y[y == 2] = 1  # illicit
+        test_mask = tx_data.test_mask[known_mask]
+        
+        # Initialize model
+        if args.model == 'hgt':
+            model = SimpleHGT(
+                node_types=data.node_types,
+                edge_types=data.edge_types,
+                in_dim=args.hidden_dim,
+                hidden_dim=args.hidden_dim,
+                out_dim=1
+            ).to(device)
+        else:  # han
+            model = SimpleHAN(
+                node_types=data.node_types,
+                edge_types=data.edge_types,
+                in_dim=args.hidden_dim,
+                hidden_dim=args.hidden_dim,
+                out_dim=1
+            ).to(device)
+        
+        model.load_state_dict(torch.load(args.ckpt, map_location=device))
+        model.eval()
+        
+        with torch.no_grad():
+            logits = model(x_dict, edge_index_dict).squeeze()
+            probs = torch.sigmoid(logits[test_mask]).cpu().numpy()
+            true_labels = y[test_mask].cpu().numpy()
+            metrics = compute_metrics(true_labels, probs)
+
     print("Evaluation Metrics:")
     print(json.dumps(metrics, indent=4))
 
@@ -100,7 +162,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt', required=True, help='Path to the model checkpoint (.pth file)')
     parser.add_argument('--data_path', default='data/ellipticpp/ellipticpp.pt', help='Path to the data file')
-    parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn'])
+    parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn', 'hgt', 'han'])
     parser.add_argument('--hidden_dim', type=int, default=64, help='Hidden dimension of the model (must match training)')
     parser.add_argument('--sample', type=int, default=None, help='Subsample N nodes for quick evaluation (lite mode)')
     args = parser.parse_args()
