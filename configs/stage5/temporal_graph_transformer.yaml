@@ -1,0 +1,138 @@
+# Stage 5 Configuration: Temporal Graph Transformer
+# Advanced architecture combining temporal and graph modeling
+
+model:
+  type: "temporal_graph_transformer"
+  
+  # Architecture parameters
+  hidden_dim: 256
+  num_layers: 6
+  num_heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  
+  # Temporal parameters
+  max_seq_len: 50
+  temporal_weight: 0.6  # Balance between temporal and graph attention
+  use_temporal_pos_encoding: true
+  use_graph_pos_encoding: true
+  
+  # Prediction mode
+  prediction_mode: "sequence"  # or "node"
+  
+  # Output parameters
+  num_classes: 2
+
+# Training configuration
+training:
+  epochs: 120
+  batch_size: 8  # Smaller due to sequence complexity
+  learning_rate: 2e-5
+  weight_decay: 1e-4
+  grad_clip: 0.5
+  early_stopping_patience: 20
+  
+  # Validation
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+# Optimizer configuration
+optimizer:
+  type: "adamw"
+  lr: 2e-5
+  weight_decay: 1e-4
+  betas: [0.9, 0.98]
+  eps: 1e-9
+
+# Learning rate scheduler
+scheduler:
+  enabled: true
+  type: "cosine_with_restarts"
+  T_0: 20
+  T_mult: 2
+  eta_min: 1e-7
+
+# Loss configuration
+loss:
+  type: "focal_loss"
+  alpha: 2.0
+  gamma: 3.0
+  class_weights: [1.0, 5.0]  # Higher weight for fraud class
+
+# Data configuration
+dataset:
+  name: "ellipticpp_temporal"
+  data_dir: "data/ellipticpp"
+  
+  # Temporal configuration
+  window_size: 5
+  max_seq_len: 50
+  overlap: 0.3
+  
+  # Graph construction
+  temporal_edges: true
+  temporal_edge_threshold: 0.1
+  max_temporal_distance: 3
+  
+  # Feature engineering
+  use_temporal_features: true
+  use_graph_features: true
+  normalize_features: true
+  
+  # Sequence parameters
+  min_seq_len: 3
+  pad_sequences: true
+
+# Evaluation metrics
+metrics:
+  - "auc"
+  - "f1"
+  - "precision"
+  - "recall"
+  - "accuracy"
+  - "temporal_consistency"
+
+# Output configuration
+output:
+  save_model: true
+  save_predictions: true
+  save_temporal_attention: true
+  save_graph_attention: true
+  
+  # Directories
+  model_dir: "experiments/stage5/temporal_graph_transformer"
+  log_dir: "logs/stage5/temporal_graph_transformer"
+
+# Hardware configuration
+hardware:
+  device: "auto"
+  mixed_precision: false
+  num_workers: 1  # Sequential processing for temporal data
+  pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Advanced options
+advanced:
+  # Memory optimization
+  gradient_checkpointing: true
+  memory_efficient_attention: true
+  sequence_parallel: false
+  
+  # Temporal-specific
+  temporal_masking: true
+  causal_attention: false  # For fraud detection, can see future
+  
+  # Graph-specific
+  dynamic_graph: true
+  temporal_graph_evolution: true
+  
+  # Analysis
+  analyze_temporal_patterns: true
+  analyze_graph_dynamics: true
+  save_attention_evolution: true
+  
+  # Monitoring
+  log_interval: 25
+  eval_interval: 100

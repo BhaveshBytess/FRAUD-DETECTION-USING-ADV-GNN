@@ -1,0 +1,223 @@
+# Stage 5 Comprehensive Benchmark Configuration
+# This configuration defines all parameters for running the complete
+# Stage 5 benchmark comparing advanced architectures against baselines
+
+# Output and logging settings
+output_dir: experiments/stage5_benchmark
+use_wandb: false
+wandb_project: fraud-detection-stage5-benchmark
+
+# Dataset configuration
+data:
+  dataset: ellipticpp
+  data_path: data/ellipticpp
+  sample_size: 50000  # Use larger sample for comprehensive benchmark
+  batch_size: 256
+  test_size: 0.2
+  val_size: 0.1
+  num_workers: 4
+  pin_memory: true
+
+# Training configuration
+training:
+  epochs: 20
+  early_stopping_patience: 5
+  early_stopping_min_delta: 0.0001
+  grad_clip: 1.0
+  save_every: 5
+  
+  # Optimizer settings
+  optimizer:
+    name: adamw
+    lr: 0.0005
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1.0e-8
+  
+  # Learning rate scheduler
+  scheduler:
+    name: cosine
+    min_lr: 1.0e-6
+    warmup_steps: 100
+  
+  # Loss function
+  loss:
+    name: focal
+    alpha: 1.0
+    gamma: 2.0
+
+# Model configurations for Stage 5 architectures
+models:
+  graph_transformer:
+    enabled: true
+    name: graph_transformer
+    type: graph
+    hidden_dim: 256
+    num_layers: 6
+    num_heads: 8
+    dropout: 0.1
+    attention_dropout: 0.1
+    use_positional_encoding: true
+    use_edge_features: true
+    residual_connections: true
+    layer_norm: true
+    
+  hetero_graph_transformer:
+    enabled: true
+    name: hetero_graph_transformer
+    type: hetero_graph
+    hidden_dim: 256
+    num_layers: 4
+    num_heads: 8
+    dropout: 0.1
+    attention_dropout: 0.1
+    use_type_embeddings: true
+    cross_type_attention: true
+    residual_connections: true
+    
+  temporal_graph_transformer:
+    enabled: true
+    name: temporal_graph_transformer
+    type: temporal_graph
+    hidden_dim: 256
+    num_layers: 4
+    num_heads: 8
+    dropout: 0.1
+    attention_dropout: 0.1
+    prediction_mode: sequence
+    temporal_attention_heads: 4
+    graph_attention_heads: 4
+    temporal_weight: 0.6
+    use_causal_attention: true
+    
+  ensemble_models:
+    enabled: true
+    adaptive_ensemble:
+      name: adaptive_ensemble
+      type: ensemble
+      combination_method: learned_weights
+      hidden_dim: 128
+      num_layers: 2
+      dropout: 0.1
+      use_cross_validation: true
+      cv_folds: 5
+
+# Baseline models for comparison (Stage 3-4)
+baseline_models:
+  han_baseline:
+    enabled: true
+    hidden_dim: 256
+    num_heads: 8
+    num_layers: 3
+    dropout: 0.3
+    attention_dropout: 0.2
+    
+  temporal_lstm:
+    enabled: true
+    hidden_dim: 128
+    num_layers: 2
+    dropout: 0.2
+    bidirectional: true
+    
+  temporal_gru:
+    enabled: true
+    hidden_dim: 128
+    num_layers: 2
+    dropout: 0.2
+    bidirectional: true
+    
+  temporal_mlp:
+    enabled: true
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.3
+    activation: relu
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    - auc
+    - f1
+    - precision
+    - recall
+    - accuracy
+    - pr_auc
+    - specificity
+    - sensitivity
+  
+  # Performance profiling
+  profile_performance: true
+  profile_memory: true
+  
+  # Statistical testing
+  statistical_tests:
+    enabled: true
+    significance_level: 0.05
+    bootstrap_samples: 1000
+  
+  # Visualization settings
+  generate_plots: true
+  plot_formats: [png, pdf]
+  plot_dpi: 300
+
+# Hardware and optimization settings
+hardware:
+  device: auto  # auto, cpu, cuda
+  mixed_precision: true
+  compile_model: false  # PyTorch 2.0 compilation
+  
+# Reproducibility
+seed: 42
+deterministic: true
+
+# Advanced benchmark features
+advanced_features:
+  # Model interpretability analysis
+  interpretability:
+    enabled: true
+    attention_visualization: true
+    feature_importance: true
+    
+  # Robustness testing
+  robustness:
+    enabled: true
+    noise_levels: [0.01, 0.05, 0.1]
+    adversarial_testing: false
+    
+  # Efficiency analysis
+  efficiency:
+    enabled: true
+    latency_testing: true
+    throughput_testing: true
+    memory_profiling: true
+    
+  # Ablation studies
+  ablation:
+    enabled: true
+    components:
+      - attention_mechanism
+      - positional_encoding
+      - residual_connections
+      - layer_normalization
+
+# Reporting configuration
+reporting:
+  generate_markdown: true
+  generate_pdf: false
+  include_model_architectures: true
+  include_training_curves: true
+  include_attention_maps: true
+  include_error_analysis: true
+  
+  # Comparison tables
+  comparison_tables:
+    - performance_metrics
+    - efficiency_metrics
+    - parameter_counts
+    - inference_times
+    
+  # Statistical analysis
+  statistical_analysis:
+    confidence_intervals: true
+    significance_tests: true
+    effect_sizes: true
