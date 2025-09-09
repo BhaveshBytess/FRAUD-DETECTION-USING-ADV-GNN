@@ -1,0 +1,58 @@
+# Temporal Model Configuration for Stage 4
+# Configuration for training temporal fraud detection models
+
+model:
+  type: "lstm"  # Options: lstm, gru, tgan
+  hidden_dim: 128
+  num_layers: 2
+  dropout: 0.3
+  bidirectional: true
+  use_attention: true
+  
+  # TGAN specific parameters
+  temporal_dim: 64
+  graph_dim: 64
+  num_heads: 4
+  use_temporal: true
+  use_graph: true
+
+dataset:
+  window_size: 3
+  max_seq_len: 100
+  add_temporal_feats: true
+  overlap: 0.5
+
+training:
+  epochs: 50
+  batch_size: 16  # Small batch size for memory efficiency with 8GB RAM
+  lr: 0.001
+  weight_decay: 1e-5
+  grad_clip: 1.0
+  early_stopping_patience: 10
+  num_workers: 0  # Single thread for Windows compatibility
+
+optimizer:
+  type: "adam"
+  lr: 0.001
+  weight_decay: 1e-5
+
+scheduler:
+  enabled: true
+  type: "plateau"
+  patience: 5
+  factor: 0.5
+
+loss:
+  type: "cross_entropy"
+  class_weights: [1.0, 3.0]  # Balance fraud vs non-fraud classes
+
+# Evaluation settings
+evaluation:
+  metrics: ["auc", "pr_auc", "f1", "precision", "recall", "accuracy"]
+  temporal_aware: true
+  
+# Output settings
+output:
+  save_best_model: true
+  save_training_history: true
+  save_predictions: true

@@ -1,0 +1,132 @@
+# Stage 5 Configuration: Heterogeneous Graph Transformer
+# Advanced architecture for multi-type node and edge modeling
+
+model:
+  type: "hetero_graph_transformer"
+  
+  # Architecture parameters
+  hidden_dim: 256
+  num_layers: 4
+  num_heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  
+  # Heterogeneous graph parameters
+  target_node_type: "transaction"
+  use_type_embeddings: true
+  norm_first: true
+  
+  # Input dimensions for different node types
+  input_dims:
+    transaction: 186  # From ellipticpp transaction features
+    wallet: 64        # Wallet features (if available)
+  
+  # Output parameters
+  num_classes: 2
+
+# Training configuration
+training:
+  epochs: 80
+  batch_size: 16  # Smaller due to complexity
+  learning_rate: 5e-5
+  weight_decay: 1e-4
+  grad_clip: 0.5
+  early_stopping_patience: 12
+  
+  # Validation
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+# Optimizer configuration
+optimizer:
+  type: "adamw"
+  lr: 5e-5
+  weight_decay: 1e-4
+  betas: [0.9, 0.95]
+  eps: 1e-8
+
+# Learning rate scheduler
+scheduler:
+  enabled: true
+  type: "plateau"
+  mode: "max"
+  factor: 0.5
+  patience: 8
+  min_lr: 1e-7
+
+# Loss configuration
+loss:
+  type: "cross_entropy"
+  class_weights: [1.0, 4.0]  # Higher weight for fraud class
+  label_smoothing: 0.1
+
+# Data configuration
+dataset:
+  name: "ellipticpp_hetero"
+  data_dir: "data/ellipticpp"
+  
+  # Heterogeneous graph construction
+  node_types:
+    - "transaction"
+    - "wallet"
+  
+  edge_types:
+    - "transaction__to__transaction"
+    - "wallet__to__transaction"
+    - "transaction__to__wallet"
+  
+  # Feature engineering
+  use_node_features: true
+  use_edge_features: false
+  normalize_features: true
+  
+  # Graph construction parameters
+  max_edges_per_type: 1000
+  min_edge_weight: 0.05
+
+# Evaluation metrics
+metrics:
+  - "auc"
+  - "f1"
+  - "precision"
+  - "recall"
+  - "accuracy"
+  - "confusion_matrix"
+
+# Output configuration
+output:
+  save_model: true
+  save_predictions: true
+  save_type_embeddings: true
+  
+  # Directories
+  model_dir: "experiments/stage5/hetero_graph_transformer"
+  log_dir: "logs/stage5/hetero_graph_transformer"
+
+# Hardware configuration
+hardware:
+  device: "auto"
+  mixed_precision: false  # More stable for complex models
+  num_workers: 2
+  pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Advanced options
+advanced:
+  # Memory optimization
+  gradient_checkpointing: true
+  memory_efficient_attention: true
+  
+  # Heterogeneous graph specific
+  cross_type_attention: true
+  type_specific_norms: true
+  
+  # Analysis
+  analyze_type_interactions: true
+  save_cross_type_attention: true
+  
+  # Monitoring
+  log_interval: 50
+  eval_interval: 200

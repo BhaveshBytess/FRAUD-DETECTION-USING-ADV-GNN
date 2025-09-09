@@ -1,0 +1,117 @@
+# Stage 5 Configuration: Graph Transformer
+# Advanced architecture combining transformer attention with graph structure
+
+model:
+  type: "graph_transformer"
+  
+  # Architecture parameters
+  hidden_dim: 256
+  num_layers: 6
+  num_heads: 8
+  ff_dim: 1024  # 4 * hidden_dim
+  dropout: 0.1
+  edge_dim: null  # Will be inferred from data
+  
+  # Graph-specific parameters
+  use_pos_encoding: true
+  norm_first: true
+  global_pool: "mean"  # For graph-level predictions
+  
+  # Output parameters
+  num_classes: 2
+
+# Training configuration
+training:
+  epochs: 100
+  batch_size: 32
+  learning_rate: 1e-4
+  weight_decay: 1e-5
+  grad_clip: 1.0
+  early_stopping_patience: 15
+  
+  # Validation
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+# Optimizer configuration
+optimizer:
+  type: "adamw"
+  lr: 1e-4
+  weight_decay: 1e-5
+  betas: [0.9, 0.999]
+  eps: 1e-8
+
+# Learning rate scheduler
+scheduler:
+  enabled: true
+  type: "cosine_with_warmup"
+  warmup_epochs: 10
+  max_epochs: 100
+  min_lr: 1e-6
+
+# Loss configuration
+loss:
+  type: "focal_loss"
+  alpha: 1.0
+  gamma: 2.0
+  class_weights: [1.0, 3.0]  # Higher weight for fraud class
+
+# Data configuration
+dataset:
+  name: "ellipticpp"
+  data_dir: "data/ellipticpp"
+  
+  # Graph construction
+  edge_threshold: 0.1
+  max_edges_per_node: 50
+  
+  # Feature engineering
+  use_node_features: true
+  use_edge_features: false
+  normalize_features: true
+  
+  # Augmentation
+  node_dropout: 0.1
+  edge_dropout: 0.1
+
+# Evaluation metrics
+metrics:
+  - "auc"
+  - "f1"
+  - "precision"
+  - "recall"
+  - "accuracy"
+
+# Output configuration
+output:
+  save_model: true
+  save_predictions: true
+  save_attention_maps: true
+  
+  # Directories
+  model_dir: "experiments/stage5/graph_transformer"
+  log_dir: "logs/stage5/graph_transformer"
+
+# Hardware configuration
+hardware:
+  device: "auto"  # auto, cpu, cuda
+  mixed_precision: true
+  num_workers: 4
+  pin_memory: true
+
+# Reproducibility
+seed: 42
+
+# Advanced options
+advanced:
+  # Memory optimization
+  gradient_checkpointing: false
+  memory_efficient_attention: true
+  
+  # Model analysis
+  analyze_attention: true
+  save_embeddings: true
+  
+  # Monitoring
+  log_interval: 100
+  eval_interval: 500
