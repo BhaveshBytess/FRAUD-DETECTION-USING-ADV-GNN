@@ -1,0 +1,84 @@
+# configs/stage6_tdgnn.yaml
+# Stage 6 TDGNN + G-SAMPLER Configuration per §PHASE_C.3 exact specifications
+# Implements "Timestamped Directed GNNs (TDGNN) with G-SAMPLER for scalable fraud detection"
+
+# Model Configuration
+model_name: "tdgnn_gsampler"
+model_type: "hypergraph"  # Base model type for TDGNN wrapper
+
+# Data Configuration  
+data_path: "data/ellipticpp/ellipticpp.pt"
+out_dir: "experiments/stage6_tdgnn"
+seed: 42
+
+# Training Configuration per §PHASE_C.2
+epochs: 50
+batch_size: 512
+lr: 1e-3
+weight_decay: 1e-5
+hidden_dim: 128
+device: "cuda"
+
+# Early Stopping & Validation per §PHASE_C.3
+early_stopping_patience: 10
+validate_every: 1
+save_every: 5
+
+# TDGNN Temporal Sampling Parameters per §PHASE_C.1
+fanouts: [15, 10]  # Neighbor sampling fanouts per hop
+delta_t: 86400.0   # Time relaxation (1 day in seconds)
+sampling_strategy: "recency"  # Temporal sampling strategy
+
+# G-SAMPLER Configuration per §PHASE_B.3
+use_gpu_sampling: true  # Will fallback to CPU if CUDA unavailable
+num_workers: 4
+prefetch_factor: 2
+pin_memory: true
+
+# Training Optimizations per §PHASE_C.2  
+accumulate_grad_batches: 1
+gradient_clip_val: 1.0
+
+# Reproducibility per §PHASE_C.3
+deterministic: true
+benchmark: false
+
+# Profiling & Monitoring per §PHASE_C.3
+profile_memory: true
+profile_sampling: true
+
+# Hypergraph Model Configuration (from Stage 5)
+layer_type: "full"          # PhenomNN layer type
+num_layers: 3               # Number of hypergraph layers
+dropout: 0.2                # Dropout rate
+use_residual: true          # Use residual connections
+use_batch_norm: false       # Use batch normalization
+lambda0_init: 1.0           # Initial clique expansion weight
+lambda1_init: 1.0           # Initial star expansion weight  
+alpha_init: 0.1             # Initial step size for PhenomNN
+max_iterations: 10          # Max iterations for PhenomNN convergence
+convergence_threshold: 1e-4 # Convergence threshold for PhenomNN
+
+# Experimental Configuration per §PHASE_C.3
+experiment:
+  name: "stage6_tdgnn_gsampler_baseline"
+  description: "TDGNN with G-SAMPLER for temporal fraud detection"
+  tags: ["stage6", "tdgnn", "gsampler", "temporal", "hypergraph"]
+  
+# Ablation Study Configuration (for Phase D)
+ablation:
+  enable: false
+  variations:
+    - name: "no_gsampler"
+      description: "TDGNN without G-SAMPLER (full graph)"
+      use_gpu_sampling: false
+      fanouts: [10000, 10000]  # Full neighborhood
+    - name: "uniform_sampling"  
+      description: "TDGNN with uniform temporal sampling"
+      sampling_strategy: "uniform"
+    - name: "restrictive_delta"
+      description: "TDGNN with restrictive time window"
+      delta_t: 3600.0  # 1 hour
+    - name: "cpu_fallback"
+      description: "TDGNN with CPU-only sampling"
+      use_gpu_sampling: false

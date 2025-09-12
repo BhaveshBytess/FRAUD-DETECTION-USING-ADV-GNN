@@ -1,0 +1,66 @@
+advanced:
+  ablation_configs:
+  - lambda0_init: 0.0
+    lambda1_init: 1.0
+    name: star_only
+  - lambda0_init: 1.0
+    lambda1_init: 0.0
+    name: clique_only
+  - lambda0_init: 1.0
+    lambda1_init: 1.0
+    name: balanced
+  - lambda0_init: 2.0
+    lambda1_init: 0.5
+    name: clique_heavy
+  - lambda0_init: 0.5
+    lambda1_init: 2.0
+    name: star_heavy
+  early_stopping_patience: 10
+  gradient_clipping: 1.0
+  save_best_model: true
+alpha_init: 0.1
+convergence_threshold: 1e-4
+data_path: data/ellipticpp/ellipticpp.pt
+device: cuda
+dropout: 0.2
+epochs: 50
+hidden_dim: 64
+hypergraph_config:
+  amount_bins: 5
+  clustering_eps: 0.1
+  clustering_min_samples: 3
+  fraud_pattern_types:
+  - transaction_patterns
+  - temporal_patterns
+  - amount_patterns
+  - behavioral_patterns
+  max_hyperedge_size: 10
+  min_hyperedge_size: 2
+  random_seed: 42
+  temporal_window: 24
+lambda0_init: 1.0
+lambda1_init: 1.0
+layer_type: full
+logging:
+  level: INFO
+  log_convergence: true
+  log_hypergraph_stats: true
+  log_layer_params: true
+lr: 0.001
+max_iterations: 15
+metrics:
+- auc
+- precision
+- recall
+- f1
+- accuracy
+model:
+  lambda0: 1.0
+  lambda1: 1.0
+num_layers: 3
+out_dir: experiments/stage5_hypergraph
+sample: null
+seed: 42
+use_batch_norm: false
+use_residual: true
+weight_decay: 0.0005

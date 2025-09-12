@@ -1,0 +1,59 @@
+# configs/stage6.yaml - Stage 6 TDGNN + G-SAMPLER Configuration
+# Per APPENDIX config template in STAGE6_TDGNN_GSAMPLER_REFERENCE.md
+
+stage6:
+  delta_t: 86400        # 1 day in seconds
+  fanouts: [15, 10]
+  depth: 2
+  sampling_strategy: recency
+  alpha_time: 0.05
+  gs_gpu_device: cuda:0
+  gs_max_batch_nodes: 10000
+  seed: 42
+
+# Model configuration (extends hypergraph from Stage 5)
+model:
+  name: hypergraph_tdgnn
+  hidden_dim: 64
+  num_classes: 2
+  dropout: 0.5
+  num_heads: 4
+
+# Training configuration
+training:
+  epochs: 100
+  batch_size: 256
+  learning_rate: 0.001
+  weight_decay: 5e-4
+  patience: 20
+
+# Data configuration
+data:
+  path: "data/ellipticpp.pt"
+  sample_n: null
+  validation_split: 0.15
+  test_split: 0.15
+
+# Temporal sampling configuration (per §PHASE_A.4 hyperparameters)
+temporal:
+  delta_t_relax: 86400    # 1 day - conservative default per §PHASE_A.4
+  fanouts: [15, 10]       # per §PHASE_A.4
+  depth: 2                # per §PHASE_A.4
+  sampling_strategy: "recency"  # per §PHASE_A.4
+  alpha_time: 0.05        # per §PHASE_A.4
+
+# G-SAMPLER configuration
+gsampler:
+  gpu_device: "cuda:0"
+  max_batch_nodes: 10000
+  memory_pool_size: "1GB"
+  stream_overlap: true
+  cpu_fallback: true
+
+# Experiment tracking
+experiment:
+  name: "stage6_tdgnn_gsampler"
+  save_dir: "experiments/stage6"
+  log_level: "INFO"
+  save_metrics: true
+  save_model: true

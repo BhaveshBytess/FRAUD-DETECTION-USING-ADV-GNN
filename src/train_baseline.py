@@ -7,15 +7,21 @@ from models.graphsage_baseline import SimpleGraphSAGE
 from models.rgcn_baseline import SimpleRGCN
 # from models.hgt_baseline import SimpleHGT  # Temporarily disabled due to import issues
 from models.han_baseline import SimpleHAN
+from models.hypergraph import create_hypergraph_model
+from data_utils import build_hypergraph_data, create_hypergraph_masks
 from metrics import compute_metrics
 from utils import set_seed
 import yaml
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_data(data_path, model_name, sample_n=None):
     """
     Loads the HeteroData object and prepares it for training.
     - For GCN/GraphSAGE, it creates a homogeneous graph of transaction nodes.
     - For RGCN, it returns the full HeteroData object.
+    - For hypergraph models, it creates hypergraph data structure.
     - It also filters for known labels and remaps them to binary.
     """
     data = torch.load(data_path, weights_only=False)
@@ -59,6 +65,99 @@ def load_data(data_path, model_name, sample_n=None):
             sampled_data.test_mask = homo_data.test_mask[perm]
             return sampled_data
         return homo_data
+
+    elif model_name == 'hypergraph':
+        # For hypergraph models, convert to hypergraph representation
+        logger.info("Converting HeteroData to hypergraph representation...")
+        
+        # Apply sampling to HeteroData first if requested
+        if sample_n:
+            num_tx_nodes = tx_data.num_nodes
+            if sample_n < num_tx_nodes:
+                # Sample transaction nodes
+                perm = torch.randperm(num_tx_nodes)[:sample_n]
+                
+                # Create new HeteroData with sampled transaction nodes
+                sampled_data = data.clone()
+                sampled_data['transaction'].x = tx_data.x[perm]
+                sampled_data['transaction'].y = tx_data.y[perm] 
+                sampled_data['transaction'].train_mask = tx_data.train_mask[perm] if hasattr(tx_data, 'train_mask') else None
+                sampled_data['transaction'].val_mask = tx_data.val_mask[perm] if hasattr(tx_data, 'val_mask') else None
+                sampled_data['transaction'].test_mask = tx_data.test_mask[perm] if hasattr(tx_data, 'test_mask') else None
+                
+                # Filter edges to only include sampled transaction nodes
+                for edge_type in data.edge_types:
+                    if edge_type[0] == 'transaction' or edge_type[2] == 'transaction':
+                        edge_index = data[edge_type].edge_index
+                        if edge_type[0] == 'transaction' and edge_type[2] == 'transaction':
+                            # Both source and target are transactions
+                            mask = torch.isin(edge_index[0], perm) & torch.isin(edge_index[1], perm)
+                        elif edge_type[0] == 'transaction':
+                            # Source is transaction
+                            mask = torch.isin(edge_index[0], perm)
+                        else:
+                            # Target is transaction
+                            mask = torch.isin(edge_index[1], perm)
+                        
+                        sampled_data[edge_type].edge_index = edge_index[:, mask]
+                
+                data = sampled_data
+        
+        # Build hypergraph data with error handling
+        try:
+            hypergraph_data, node_features, labels = build_hypergraph_data(data)
+        except Exception as e:
+            logger.warning(f"Hypergraph construction failed: {e}")
+            logger.info("Falling back to simple hypergraph construction...")
+            
+            # Fallback: Create simple hypergraph manually
+            tx_data = data['transaction']
+            known_mask = tx_data.y != 3
+            labels = tx_data.y[known_mask].clone()
+            labels[labels == 1] = 0  # licit
+            labels[labels == 2] = 1  # illicit
+            
+            node_features = tx_data.x[known_mask]
+            node_features[torch.isnan(node_features)] = 0
+            
+            n_nodes = labels.size(0)
+            
+            # Create simple random hyperedges for fallback
+            import random
+            random.seed(42)
+            n_hyperedges = max(1, min(10, n_nodes // 5))
+            
+            from models.hypergraph import HypergraphData
+            incidence_matrix = torch.zeros((n_nodes, n_hyperedges), dtype=torch.float)
+            
+            for he_idx in range(n_hyperedges):
+                # Each hyperedge connects 2-4 random nodes
+                size = random.randint(2, min(4, n_nodes))
+                nodes = random.sample(range(n_nodes), size)
+                for node_idx in nodes:
+                    incidence_matrix[node_idx, he_idx] = 1.0
+            
+            hypergraph_data = HypergraphData(
+                incidence_matrix=incidence_matrix,
+                node_features=node_features,
+                hyperedge_features=None,
+                node_labels=labels
+            )
+        
+        # Create train/val/test masks for hypergraph
+        train_mask, val_mask, test_mask = create_hypergraph_masks(
+            num_nodes=labels.size(0),
+            seed=42
+        )
+        
+        return {
+            'hypergraph_data': hypergraph_data,
+            'node_features': node_features,
+            'labels': labels,
+            'train_mask': train_mask,
+            'val_mask': val_mask,
+            'test_mask': test_mask
+        }
 
     elif model_name in ['rgcn', 'hgt', 'han']:
         # For heterogeneous models, we need the full HeteroData structure
@@ -107,6 +206,9 @@ def train(args):
     
     device = torch.device('cuda' if torch.cuda.is_available() and args.device=='cuda' else 'cpu')
     
+    # Initialize model to None for safety
+    model = None
+    
     if args.config:
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
@@ -116,6 +218,9 @@ def train(args):
 
     data = load_data(args.data_path, model_name=args.model, sample_n=args.sample)
     
+    print(f"DEBUG: args.model = '{args.model}'")
+    print(f"DEBUG: Available model types: gcn, graphsage, hypergraph, rgcn, hgt, han")
+
     if args.model in ['gcn', 'graphsage']:
         data = data.to(device)
         x, edge_index, y = data.x, data.edge_index, data.y
@@ -141,6 +246,113 @@ def train(args):
                 val_probs = torch.sigmoid(val_logits[val_mask]).cpu().numpy()
                 val_true = y[val_mask].cpu().numpy()
                 metrics = compute_metrics(val_true, val_probs)
+                print(f"Epoch {epoch} loss {loss.item():.4f} val_auc {metrics['auc']:.4f}")
+
+    elif args.model == 'hypergraph':
+        print("DEBUG: Entering hypergraph model branch")
+        # Hypergraph neural network training
+        data_dict = data  # data is already a dictionary with hypergraph components
+        hypergraph_data = data_dict['hypergraph_data'].to(device)
+        node_features = data_dict['node_features'].to(device)
+        y = data_dict['labels'].to(device)
+        train_mask = data_dict['train_mask'].to(device)
+        val_mask = data_dict['val_mask'].to(device)
+        test_mask = data_dict['test_mask'].to(device)
+        
+        # Ensure all dimensions are consistent
+        n_nodes = min(hypergraph_data.B.shape[0], node_features.shape[0], y.shape[0])
+        
+        # Truncate all tensors to consistent size
+        if hypergraph_data.B.shape[0] != n_nodes:
+            print(f"Adjusting hypergraph dimensions from {hypergraph_data.B.shape[0]} to {n_nodes}")
+            hypergraph_data.B = hypergraph_data.B[:n_nodes, :]
+        
+        node_features = node_features[:n_nodes, :]
+        y = y[:n_nodes]
+        train_mask = train_mask[:n_nodes]
+        val_mask = val_mask[:n_nodes] 
+        test_mask = test_mask[:n_nodes]
+        
+        # Update hypergraph_data with consistent dimensions
+        hypergraph_data.X = node_features
+        hypergraph_data.y = y
+        
+        # If we have empty hypergraphs, create simple meaningful hyperedges
+        if hypergraph_data.B.shape[1] == 0:
+            print("Creating fallback hyperedges...")
+            n_nodes = n_nodes
+            # Create K-NN hyperedges based on feature similarity
+            with torch.no_grad():
+                # Compute pairwise distances
+                features_norm = torch.nn.functional.normalize(node_features, p=2, dim=1)
+                similarity = torch.mm(features_norm, features_norm.t())
+                
+                # Create hyperedges from top-k similar nodes
+                k = min(5, n_nodes - 1)
+                _, top_k_indices = torch.topk(similarity, k + 1, dim=1)  # +1 because self is included
+                
+                # Create hyperedges from each node and its k nearest neighbors
+                hyperedges = []
+                for i in range(n_nodes):
+                    neighbors = top_k_indices[i, 1:]  # exclude self
+                    hyperedge = torch.zeros(n_nodes)
+                    hyperedge[i] = 1.0
+                    hyperedge[neighbors] = 1.0
+                    hyperedges.append(hyperedge)
+                
+                # Stack into incidence matrix
+                B_fallback = torch.stack(hyperedges, dim=1).to(device)
+                hypergraph_data.B = B_fallback
+                print(f"Created {B_fallback.shape[1]} fallback hyperedges")
+                
+                # Update statistics - will be computed after model creation
+                print(f"Hypergraph construction completed: {y.size(0)} labeled nodes")
+        
+        # Create hypergraph model
+        model_config = {
+            'layer_type': getattr(args, 'layer_type', 'full'),
+            'num_layers': int(getattr(args, 'num_layers', 3)),
+            'dropout': float(getattr(args, 'dropout', 0.2)),
+            'use_residual': bool(getattr(args, 'use_residual', True)),
+            'use_batch_norm': bool(getattr(args, 'use_batch_norm', False)),
+            'lambda0_init': float(getattr(args, 'lambda0_init', 1.0)),
+            'lambda1_init': float(getattr(args, 'lambda1_init', 1.0)),
+            'alpha_init': float(getattr(args, 'alpha_init', 0.1)),
+            'max_iterations': int(getattr(args, 'max_iterations', 10)),
+            'convergence_threshold': float(getattr(args, 'convergence_threshold', 1e-4))
+        }
+        
+        model = create_hypergraph_model(
+            input_dim=node_features.size(1),
+            hidden_dim=args.hidden_dim,
+            output_dim=2,  # Binary classification
+            model_config=model_config
+        ).to(device)
+        
+        opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        
+        print(f"Starting training for {args.model}...")
+        print(f"Model parameters: {model.count_parameters()}")
+        print(f"Hypergraph stats: {model.get_hypergraph_stats(hypergraph_data)}")
+        
+        for epoch in range(args.epochs):
+            model.train()
+            logits = model(hypergraph_data, node_features)
+            loss = torch.nn.CrossEntropyLoss()(logits[train_mask], y[train_mask])
+            opt.zero_grad(); loss.backward(); opt.step()
+            
+            model.eval()
+            with torch.no_grad():
+                val_logits = model(hypergraph_data, node_features)
+                val_probs = torch.softmax(val_logits[val_mask], dim=1)[:, 1].cpu().numpy()  # Get positive class probability
+                val_true = y[val_mask].cpu().numpy()
+                metrics = compute_metrics(val_true, val_probs)
+                
+                # Log layer parameters for monitoring
+                if epoch % 5 == 0:
+                    layer_params = model.get_layer_parameters()
+                    logger.info(f"Epoch {epoch} layer parameters: {layer_params}")
+                
                 print(f"Epoch {epoch} loss {loss.item():.4f} val_auc {metrics['auc']:.4f}")
 
     elif args.model in ['hgt', 'han']:
@@ -302,15 +514,32 @@ def train(args):
                 metrics = compute_metrics(val_true, val_probs)
                 print(f"Epoch {epoch} loss {loss.item():.4f} val_auc {metrics['auc']:.4f}")
     
+    else:
+        print(f"ERROR: Unknown model type '{args.model}'. Supported models: gcn, graphsage, hypergraph, rgcn, hgt, han")
+        return {'error': f'Unknown model type: {args.model}', 'auc': 0.0, 'pr_auc': 0.0, 'f1': 0.0, 'precision': 0.0, 'recall': 0.0}
+
+    # Ensure model exists before saving
+    if model is None:
+        print("ERROR: Model was not properly initialized!")
+        return {'error': 'Model not initialized', 'auc': 0.0, 'pr_auc': 0.0, 'f1': 0.0, 'precision': 0.0, 'recall': 0.0}
+    
     os.makedirs(args.out_dir, exist_ok=True)
     torch.save(model.state_dict(), os.path.join(args.out_dir, 'ckpt.pth'))
     
     # Final evaluation
+    if model is None:
+        print("ERROR: Model was not properly initialized for final evaluation!")
+        return {'error': 'Model not initialized', 'auc': 0.0, 'pr_auc': 0.0, 'f1': 0.0, 'precision': 0.0, 'recall': 0.0}
+        
     model.eval()
     with torch.no_grad():
         if args.model in ['gcn', 'graphsage']:
             test_logits = model(x, edge_index).squeeze()
             test_probs = torch.sigmoid(test_logits[test_mask]).cpu().numpy()
+            test_true = y[test_mask].cpu().numpy()
+        elif args.model == 'hypergraph':
+            test_logits = model(hypergraph_data, node_features)
+            test_probs = torch.softmax(test_logits[test_mask], dim=1)[:, 1].cpu().numpy()
             test_true = y[test_mask].cpu().numpy()
         elif args.model == 'rgcn':
             test_logits = model(x, edge_index, edge_type).squeeze()[tx_mask_homo][known_mask]
@@ -326,13 +555,15 @@ def train(args):
         print("Final Test Metrics:", final_metrics)
         with open(os.path.join(args.out_dir, 'metrics.json'), 'w') as f:
             json.dump(final_metrics, f)
+        
+        return final_metrics
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, help='Path to YAML config file')
     parser.add_argument('--data_path', type=str, default='data/ellipticpp/ellipticpp.pt')
     parser.add_argument('--out_dir', default='experiments/baseline/lite')
-    parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn', 'hgt', 'han'])
+    parser.add_argument('--model', type=str, default='gcn', choices=['gcn', 'graphsage', 'rgcn', 'hgt', 'han', 'hypergraph'])
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--hidden_dim', type=int, default=128)
@@ -340,5 +571,28 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--sample', type=int, default=None)  # lite mode
     parser.add_argument('--seed', type=int, default=42)  # reproducibility
+    
+    # Hypergraph-specific arguments
+    parser.add_argument('--layer_type', type=str, default='full', choices=['simple', 'full'], 
+                       help='PhenomNN layer type')
+    parser.add_argument('--num_layers', type=int, default=3,
+                       help='Number of hypergraph layers')
+    parser.add_argument('--dropout', type=float, default=0.2,
+                       help='Dropout rate')
+    parser.add_argument('--use_residual', action='store_true', default=True,
+                       help='Use residual connections')
+    parser.add_argument('--use_batch_norm', action='store_true', default=False,
+                       help='Use batch normalization')
+    parser.add_argument('--lambda0_init', type=float, default=1.0,
+                       help='Initial clique expansion weight')
+    parser.add_argument('--lambda1_init', type=float, default=1.0,
+                       help='Initial star expansion weight')
+    parser.add_argument('--alpha_init', type=float, default=0.1,
+                       help='Initial step size for PhenomNN')
+    parser.add_argument('--max_iterations', type=int, default=10,
+                       help='Max iterations for PhenomNN convergence')
+    parser.add_argument('--convergence_threshold', type=float, default=1e-4,
+                       help='Convergence threshold for PhenomNN')
+    
     args = parser.parse_args()
     train(args)

@@ -1,0 +1,21 @@
+{
+  "TDGNN": {
+    "status": "error",
+    "error": "'float' object has no attribute 'time'"
+  },
+  "Hypergraph": {
+    "status": "error",
+    "error": "'float' object has no attribute 'time'"
+  },
+  "Feature-only": {
+    "status": "error",
+    "error": "'float' object has no attribute 'time'"
+  },
+  "ablation_delta_t": {
+    "delta_t_50.0": 0.0,
+    "delta_t_100.0": 0.0,
+    "delta_t_200.0": 0.0,
+    "delta_t_400.0": 0.0,
+    "delta_t_800.0": 0.0
+  }
+}

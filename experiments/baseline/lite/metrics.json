@@ -1,1 +1,1 @@
-{"auc": 0.7334662678630774, "pr_auc": 0.9665502200425197, "f1": 0.954177897574124, "precision": 0.9123711340206185, "recall": 1.0}
+{"auc": 0.0, "pr_auc": 0.0, "f1": 0.0, "precision": 0.0, "recall": 0.0, "error": "Input contains NaN."}

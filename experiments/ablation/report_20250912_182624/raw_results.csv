@@ -1,0 +1,10 @@
+experiment_name,config_path,final_test_auc,final_test_pr_auc,final_test_f1,final_test_precision,final_test_recall,status,error,lambda0,lambda1,ablation_type
+lambda_ablation_l0_0.5_l1_0.5,experiments\ablation\config_20250912_182624_0.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',0.5,0.5,lambda_weights
+lambda_ablation_l0_0.5_l1_1.0,experiments\ablation\config_20250912_182624_1.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',0.5,1.0,lambda_weights
+lambda_ablation_l0_0.5_l1_2.0,experiments\ablation\config_20250912_182624_2.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',0.5,2.0,lambda_weights
+lambda_ablation_l0_1.0_l1_0.5,experiments\ablation\config_20250912_182624_3.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',1.0,0.5,lambda_weights
+lambda_ablation_l0_1.0_l1_1.0,experiments\ablation\config_20250912_182624_4.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',1.0,1.0,lambda_weights
+lambda_ablation_l0_1.0_l1_2.0,experiments\ablation\config_20250912_182624_5.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',1.0,2.0,lambda_weights
+lambda_ablation_l0_2.0_l1_0.5,experiments\ablation\config_20250912_182624_6.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',2.0,0.5,lambda_weights
+lambda_ablation_l0_2.0_l1_1.0,experiments\ablation\config_20250912_182624_7.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',2.0,1.0,lambda_weights
+lambda_ablation_l0_2.0_l1_2.0,experiments\ablation\config_20250912_182624_8.yaml,0.0,0.0,0.0,0.0,0.0,failed,'Args' object has no attribute 'output_dir',2.0,2.0,lambda_weights

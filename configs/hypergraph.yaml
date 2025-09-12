@@ -1,0 +1,98 @@
+# Hypergraph Neural Network Configuration
+# Stage 5: PhenomNN-based Hypergraph Modeling for Fraud Detection
+#
+# This configuration file defines hyperparameters for training hypergraph
+# neural networks using PhenomNN layers (Equations 22 & 25) for fraud detection.
+#
+# Mathematical Foundation:
+# - Energy-based hypergraph neural networks with clique/star expansions
+# - Iterative updates with learnable expansion weights (λ0, λ1)
+# - Adaptive step sizes (α) with convergence detection
+# - Multi-entity fraud pattern modeling through hyperedges
+
+# Training Configuration
+epochs: 50
+lr: 0.001
+weight_decay: 0.0005
+hidden_dim: 64
+device: 'cuda'
+seed: 42
+
+# Model Architecture
+model: 'hypergraph'
+layer_type: 'full'  # 'simple' or 'full' (Equation 25 vs 22)
+num_layers: 3
+dropout: 0.2
+use_residual: true
+use_batch_norm: false
+
+# PhenomNN Layer Parameters (Paper Implementation)
+lambda0_init: 1.0     # Initial clique expansion weight (λ0)
+lambda1_init: 1.0     # Initial star expansion weight (λ1)
+alpha_init: 0.1       # Initial step size (α)
+max_iterations: 15    # Maximum iterations for convergence
+convergence_threshold: 1e-4  # Convergence threshold
+
+# Hypergraph Construction Parameters
+hypergraph_config:
+  fraud_pattern_types:
+    - 'transaction_patterns'    # Multi-user transaction clusters
+    - 'temporal_patterns'       # Time-based transaction sequences
+    - 'amount_patterns'         # Similar amount transaction groups
+    - 'behavioral_patterns'     # User behavior similarity clusters
+  
+  min_hyperedge_size: 2        # Minimum nodes per hyperedge
+  max_hyperedge_size: 10       # Maximum nodes per hyperedge
+  temporal_window: 24          # Hours for temporal patterns
+  amount_bins: 5               # Number of amount clustering bins
+  clustering_eps: 0.1          # DBSCAN epsilon for behavioral clustering
+  clustering_min_samples: 3    # DBSCAN minimum samples
+  random_seed: 42              # Reproducibility seed
+
+# Data Configuration
+data_path: 'data/ellipticpp/ellipticpp.pt'
+out_dir: 'experiments/stage5_hypergraph'
+sample: null  # Set to integer for lite mode (e.g., 1000)
+
+# Evaluation Configuration
+metrics:
+  - 'auc'
+  - 'precision'
+  - 'recall'
+  - 'f1'
+  - 'accuracy'
+
+# Logging Configuration
+logging:
+  level: 'INFO'
+  log_layer_params: true       # Log learnable parameters during training
+  log_convergence: true        # Log convergence information
+  log_hypergraph_stats: true   # Log hypergraph structure statistics
+
+# Advanced Configuration
+advanced:
+  gradient_clipping: 1.0       # Gradient clipping value
+  early_stopping_patience: 10  # Early stopping patience
+  save_best_model: true        # Save best validation model
+  
+  # Ablation study configurations
+  ablation_configs:
+    - name: 'star_only'
+      lambda0_init: 0.0
+      lambda1_init: 1.0
+    
+    - name: 'clique_only'
+      lambda0_init: 1.0
+      lambda1_init: 0.0
+    
+    - name: 'balanced'
+      lambda0_init: 1.0
+      lambda1_init: 1.0
+    
+    - name: 'clique_heavy'
+      lambda0_init: 2.0
+      lambda1_init: 0.5
+    
+    - name: 'star_heavy'
+      lambda0_init: 0.5
+      lambda1_init: 2.0

@@ -1,0 +1,95 @@
+{
+  "tdgnn_performance": {
+    "Conservative": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.1092984676361084,
+      "config": {
+        "fanouts": [
+          5,
+          3
+        ],
+        "delta_t": 100.0,
+        "name": "Conservative"
+      }
+    },
+    "Balanced": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.05232048034667969,
+      "config": {
+        "fanouts": [
+          10,
+          5
+        ],
+        "delta_t": 200.0,
+        "name": "Balanced"
+      }
+    },
+    "Aggressive": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.07656407356262207,
+      "config": {
+        "fanouts": [
+          20,
+          10
+        ],
+        "delta_t": 300.0,
+        "name": "Aggressive"
+      }
+    }
+  },
+  "baseline_comparison": {
+    "TDGNN": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0
+    },
+    "Hypergraph": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0
+    },
+    "Feature-only": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0
+    }
+  },
+  "delta_t_sensitivity": {
+    "delta_t_50.0": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.02429366111755371
+    },
+    "delta_t_100.0": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.03496909141540527
+    },
+    "delta_t_200.0": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.048915863037109375
+    },
+    "delta_t_300.0": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.0636606216430664
+    },
+    "delta_t_400.0": {
+      "auc": 0.5,
+      "accuracy": 0.5,
+      "f1": 0.0,
+      "inference_time": 0.057311296463012695
+    }
+  }
+}
