@@ -1,0 +1,134 @@
+{
+  "config": {
+    "quick_epochs": 5,
+    "hidden_dim": 64,
+    "learning_rate": 0.01,
+    "seed": 42,
+    "verbose": false,
+    "num_nodes": 200,
+    "num_features": 16,
+    "num_classes": 2,
+    "edge_prob": 0.05,
+    "noise_level": 0.1,
+    "dropedge_p": 0.1,
+    "use_rgnn": true,
+    "attention_gating": true,
+    "spectral_norm": true
+  },
+  "dataset_info": {
+    "num_nodes": 200,
+    "num_edges": 3550,
+    "num_features": 16,
+    "num_classes": 2
+  },
+  "module_benchmarks": {
+    "dropedge": {
+      "determinism": {
+        "is_deterministic": false,
+        "expected_drop_rate": 0.1,
+        "actual_drop_rate": 0.10478873239436615,
+        "original_edges": 3550,
+        "remaining_edges": 3178
+      },
+      "overhead_ratio": 1980.142857142857,
+      "config": {
+        "dropedge_p": 0.1,
+        "deterministic": true
+      }
+    },
+    "rgnn": {
+      "overhead": {
+        "baseline_time_avg": 0.00047719478607177734,
+        "rgnn_time_avg": 0.0001865816116333008,
+        "overhead_ratio": 0.3909967524356733,
+        "num_trials": 50
+      },
+      "config": {
+        "attention_gating": true,
+        "spectral_norm": true,
+        "attention_dim": 32
+      }
+    },
+    "adversarial": {
+      "clean_acc_clean_data": 0.550000011920929,
+      "clean_acc_attacked_data": 0.550000011920929,
+      "robust_acc_attacked_data": 0.550000011920929,
+      "accuracy_drop": 0.0,
+      "robustness_improvement": 0.0,
+      "attack_ratio": 0.1
+    }
+  },
+  "integration_benchmarks": {
+    "baseline": {
+      "config": {
+        "use_spottarget": false,
+        "use_dropedge": false,
+        "use_rgnn": false,
+        "use_adversarial": false
+      },
+      "training_time": 0.03753328323364258,
+      "clean_accuracy": 0.550000011920929,
+      "attacked_accuracy": 0.550000011920929,
+      "robustness": 1.0,
+      "success": true
+    },
+    "spottarget_only": {
+      "config": {
+        "use_spottarget": true,
+        "use_dropedge": false,
+        "use_rgnn": false,
+        "use_adversarial": false,
+        "delta": "auto"
+      },
+      "training_time": 0.015495538711547852,
+      "clean_accuracy": 0.550000011920929,
+      "attacked_accuracy": 0.550000011920929,
+      "robustness": 1.0,
+      "success": true,
+      "spottarget_stats": {
+        "delta": 35,
+        "total_edges": 3550,
+        "train_target_edges": 2485,
+        "tlow_edges": 1641,
+        "exclusion_rate": 0.6603621730382294
+      }
+    },
+    "robustness_only": {
+      "config": {
+        "use_spottarget": false,
+        "use_dropedge": true,
+        "use_rgnn": true,
+        "use_adversarial": false,
+        "dropedge_p": 0.1
+      },
+      "training_time": 0.010545492172241211,
+      "clean_accuracy": 0.6000000238418579,
+      "attacked_accuracy": 0.6000000238418579,
+      "robustness": 1.0,
+      "success": true
+    },
+    "full_integration": {
+      "config": {
+        "use_spottarget": true,
+        "use_dropedge": true,
+        "use_rgnn": true,
+        "use_adversarial": false,
+        "delta": "auto",
+        "dropedge_p": 0.1
+      },
+      "training_time": 0.012906789779663086,
+      "clean_accuracy": 0.4749999940395355,
+      "attacked_accuracy": 0.4749999940395355,
+      "robustness": 1.0,
+      "success": true,
+      "spottarget_stats": {
+        "delta": 35,
+        "total_edges": 3550,
+        "train_target_edges": 2485,
+        "tlow_edges": 1641,
+        "exclusion_rate": 0.6603621730382294
+      }
+    }
+  },
+  "timestamp": "2025-09-13_03-39-05"
+}

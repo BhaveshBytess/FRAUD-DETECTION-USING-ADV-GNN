@@ -1,0 +1,38 @@
+# Stage 7 Configuration - SpotTarget & Robustness
+# Following Stage7 Spot Target And Robustness Reference config template
+
+stage7:
+  # SpotTarget Configuration
+  delta: auto           # 'auto' -> avg degree; or integer value
+  
+  # Robustness Modules
+  dropedge_p: 0.1      # DropEdge probability 
+  focal_gamma: 2.0     # Focal loss gamma parameter
+  
+  # Adversarial Training (expensive - disabled by default)
+  adversarial:
+    enabled: false     # Toggle adversarial edge perturbation
+    eps: 0.01         # Perturbation epsilon
+    steps: 3          # PGD steps
+  
+  # Reproducibility
+  seed: 42
+  
+  # Training Discipline
+  leakage_check:
+    use_validation_edges: false  # Remove validation edges at inference
+    strict_mode: true           # Fail if leakage detected
+  
+  # Imbalance Handling
+  class_weights: auto    # 'auto' -> compute from training labels
+  use_focal_loss: false  # Toggle focal loss vs standard CE
+  
+  # RGNN Wrapper Settings
+  rgnn:
+    enabled: false       # Toggle RGNN defensive wrappers
+    spectral_norm: true  # Apply spectral normalization
+    gradient_clip: 1.0   # Gradient clipping value
+    
+  # Logging & Debug
+  verbose: true          # Print excluded edges per batch
+  log_connectivity: true # Log graph connectivity stats

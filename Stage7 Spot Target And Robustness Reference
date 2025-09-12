@@ -1,0 +1,236 @@
+# Stage 7 — Training Discipline & Robustness Reference
+
+**Project:** hHGTN (Hyper‑Heterogeneous Temporal GNN pipeline)
+
+**Stage 7 Objective (short):** Implement and integrate SpotTarget (leakage‑safe training discipline) and robustness defenses (RGNN-inspired modules, DropEdge, adversarial/regularization strategies, imbalance handling). Produce production‑grade code, unit tests, ablations, and experiment scripts.
+
+---
+
+## TL;DR (for the agent / planner)
+
+* **Training-time rule (SpotTarget):** For each mini‑batch, *exclude training target edges that are incident to at least one low‑degree node* (degree < δ). This preserves graph connectivity while removing the worst sources of overfitting / distribution shift.
+* **Inference-time rule:** Always exclude all test (and optionally validation) target edges from the inference graph to avoid implicit leakage.
+* **Choose δ:** Default = average node degree of dataset; run sensitivity sweep during ablation.
+* **Overhead:** Filtering edges is O(|B|) per batch and is minor relative to model training time.
+
+(See the paper for experimental evidence and ablation — the implementation below follows the KDD MLG’23 SpotTarget design.)
+
+---
+
+## Files to create (required project structure)
+
+```
+src/
+├── spot_target.py        # SpotTarget core: samplers + leakage check + utils
+├── training_wrapper.py   # wrapper helpers: apply_spottarget_to_batch, batch transforms
+├── robustness.py         # RGNN wrappers, DropEdge, adversarial perturbations
+├── imbalance.py          # class weights, focal loss, GraphSMOTE helpers
+tests/
+├── test_spottarget.py
+├── test_leakage_check.py
+├── test_training_wrapper.py
+experiments/
+├── run_spottarget_ablation.py
+├── run_robustness_bench.py
+README_STAGE7.md
+```
+
+---
+
+## Phase 1 — SpotTarget Core (Edge Sampler + Leakage Check)
+
+### Goals
+
+* Implement a DGL/PyG compatible *edge sampler* that excludes `T_low` (train target edges incident to degree < δ nodes) at training time.
+* Implement a *leakage\_check* function that, given an input graph and edge splits, removes validation/test edges from the inference graph (and optionally validation edges depending on user flag).
+
+### API (recommended)
+
+```python
+# src/spot_target.py
+class SpotTargetSampler(BaseSampler):
+    def __init__(self, edge_index, train_edge_mask, degrees, delta=None):
+        """Edge sampler that excludes train-target edges incident to low-degree nodes.
+        Args:
+            edge_index: (2, E) edge index tensor for message passing graph
+            train_edge_mask: boolean mask marking train target edges
+            degrees: per-node degree vector (computed on training graph)
+            delta: degree threshold; if None, computed as average degree
+        """
+
+    def sample_batch(self, batch_edge_idx):
+        # returns filtered edge_index for this mini-batch message-passing
+        pass
+
+
+def leakage_check(G, splits, use_validation_edges: bool=False) -> Graph:
+    """Return a graph for inference where test edges (and optionally val edges) are removed."""
+```
+
+### Key implementation points
+
+* Compute per-node degree once (global training graph) and persist it as `degrees` used to evaluate `min(d_i, d_j) < delta` for each candidate train target edge. If using minibatches, degrees should be computed on the *global* train graph then used to decide per-batch exclusions.
+* `T_low` := {e=(i,j) in train\_targets | min(deg\[i],deg\[j]) < δ}. Exclude exactly those from message passing. (This matches SpotTarget training-time rule.) fileciteturn2file2
+* At inference, run `leakage_check` to remove validation/test edges before constructing the inference message‑passing graph (SpotTarget has variants ExcludeTst and ExcludeValTst). fileciteturn2file8
+
+### Minimal pseudo-implementation (concept)
+
+* Build a boolean mask for `train_targets` per minibatch
+* For each train-target edge in batch: if `min(deg[u],deg[v]) < delta` then exclude this edge from `edge_index` before building the message‑passing adjacency for that batch
+* Avoid expensive global graph ops per batch: operate on the *mini-batch subgraph* edges only (O(|B|)). Paper notes overhead is O(|B|) and negligible vs training. fileciteturn2file9
+
+### Unit tests
+
+* `test_spottarget_small_graph()` — toy graph: verify that excluding `T_low` preserves connectivity more than ExcludeAll and outperforms ExcludeNone in toy metrics.
+* `test_leakage_check_removes_test_edges()` — ensure `leakage_check` removes test/validation edges as instructed.
+
+---
+
+## Phase 2 — Training Wrapper Integration
+
+### Objective
+
+Wrap existing training loop so SpotTarget filtering runs automatically for each mini-batch. Provide a drop-in wrapper so models require minimal change.
+
+### Trainer pseudocode
+
+```python
+# src/training_wrapper.py
+def train_epoch_with_spottarget(model, train_loader, optimizer, criterion, degrees, delta):
+    model.train()
+    for batch in train_loader:
+        # batch contains node ids, batch_edge_index, candidate target edges for this batch
+        filtered_edge_index = SpotTargetSampler(...).sample_batch(batch)
+        # use filtered_edge_index to build message-passing graph (DGL/PyG subgraph)
+        logits = model.forward(batch.x, filtered_edge_index)
+        loss = criterion(logits[batch.train_mask], batch.y[batch.train_mask])
+        loss.backward(); optimizer.step()
+```
+
+### Validation / Checkpoints
+
+* During validation/test, call `leakage_check(G, splits, use_validation_edges=...)` to obtain `G_infer` prior to creating the inference data loader. This avoids P3 (test leakage). fileciteturn2file8
+
+---
+
+## Phase 3 — Robustness Modules (RGNN defenses, DropEdge, adversarial training)
+
+> Note: SpotTarget handles leakage & training discipline. Robustness modules complement it to defend against noisy or adversarial edges and class imbalance.
+
+### What to include in `src/robustness.py`
+
+* **DropEdge wrapper**: randomly drop a fraction `p` of edges per training epoch/batch. Useful baseline defense; parameterizable schedule.
+* **Adversarial edge perturbation (PGD-style)**: implement small number of adversarial edge flips during training to harden the model (careful — expensive). Provide toggles to enable/disable and sample severity.
+* **RGNN wrapper**: a lightweight wrapper that augments model forward with noise‑robust aggregations (e.g., weighted aggregation, residual smoothing, spectral norm on message matrices). If you want a named RGNN paper's exact method, supply the paper; otherwise use canonical defenses:
+
+  * edge-wise gating (learnable attention with weight clipping)
+  * spectral normalization on weight matrices
+  * gradient clipping + label smoothing
+* **Regularization**: L2 weight decay, Dropout on hidden embeddings, Jacobian regularization (optional)
+
+### Interfaces
+
+```python
+class DropEdge:
+    def __init__(self, p_drop: float): ...
+    def apply(edge_index): return edge_index_after_drop
+
+class AdversarialEdgeTrainer:
+    def __init__(self, epsilon, steps): ...
+    def perturb_and_train(batch, model, loss_fn): ...
+```
+
+### Tests
+
+* `test_dropedge_reproducible()` — make sure dropping is deterministic given seed
+* `test_rg_nn_wrapper_stability()` — metrics should not catastrophically degrade with defensive wrappers enabled
+
+---
+
+## Phase 4 — Imbalance Handling
+
+Implement in `src/imbalance.py`:
+
+* `class_weighted_loss` (compute from training labels)
+* `focal_loss` implementation tuned for heavy imbalance
+* `GraphSMOTE` helper: oversample minority positive links by synthetic edge augmentation in training batches (careful not to create leakage)
+
+---
+
+## Phase 5 — Ablations & Experiments
+
+### Ablation checklist
+
+* Sweep δ ∈ {0, avg\_deg/2, avg\_deg, avg\_deg\*2, +∞} to reproduce U‑shaped sensitivity curve; pick best δ (paper suggests avg\_deg often works best). fileciteturn2file6
+* Compare ExcludeNone(Tr), ExcludeAll, SpotTarget across datasets; run per-model (SAGE, MB‑GCN, GATv2, SEAL) as in the paper to validate results. fileciteturn2file14
+* For sparse real-world-like datasets (E‑commerce), expect dramatic boosts for SpotTarget; paper reports huge gains (up to \~15× on some sparse setups). fileciteturn2file4
+* Test P3 (test-time leakage): construct inference graphs with and without test/validation edges to quantify fake performance gains. SpotTarget's leakage\_check should reduce these fake boosts. fileciteturn2file8
+
+### Experiment config suggestions (from paper)
+
+* Batch sizes: Ogbl-Collab 256, Ogbl-Citation2 1024, USAir 64, E‑commerce 512.
+* Default δ: dataset average degree (sensitivity analysis recommended).
+* Model hyperparams: SAGE: lr=5e-4, hidden=256, layers=3; GATv2: heads=8, hidden=64; SEAL: as in paper. (Paper used single A40 GPU.) fileciteturn2file17
+
+---
+
+## Testing & Validation Suite (must pass before merging)
+
+* Unit tests for sampler, leakage\_check, and training wrapper (toy graphs, isolated nodes, extreme δ).
+* Integration test: train a short epoch on a small dataset and verify no test edges are present in inference graph and that SpotTarget keeps more connectivity than ExcludeAll.
+* Performance test: measure additional time per epoch due to filtering (should be negligible; O(|B|) per batch). fileciteturn2file9
+* Reproducibility: set seeds, run 3 random seeds, report mean ± std as in the paper.
+
+---
+
+## Acceptance Criteria (for Stage 7 completion)
+
+* [ ] `spot_target.py` and `training_wrapper.py` implemented and covered by unit tests
+* [ ] SpotTarget sampling is compatible with DGL/PyG training loops and introduces no data leakage at inference time (automated leakage\_check passes)
+* [ ] Ablation scripts reproduce the sensitivity curve for δ (U‑shaped) and indicate a best δ value per dataset (often avg degree). fileciteturn2file6
+* [ ] On at least one target dataset (e.g., E‑commerce or elliptic++ if adapted for link prediction), SpotTarget improves low‑degree node performance vs ExcludeNone baseline by a significant margin (paper shows large gains on sparse graphs). fileciteturn2file4
+* [ ] Robustness modules can be toggled and do not dramatically worsen base performance (smoke tests pass)
+
+---
+
+## Communication Protocol (for the agent)
+
+* **Before implementing a change**: "I will implement module X following STAGE7\_REFERENCE.md Phase Y. Plan: \[short bullets]."
+* **Before training runs**: "I will run ablation \[δ values], dataset Z, model M — expected runtime and GPU requirements: \[brief]."
+* **If an issue emerges**: Provide exact error, step where it happened, current batch/sample causing the problem, and a proposed fix.
+
+---
+
+## Notes & Implementation Hints
+
+* Persist a global `degrees` array computed from the training graph once — use it for all batches (no need to recompute per-batch).
+* Avoid creating heavy copies of full graphs each batch — only operate on the mini‑batch subgraph edges when filtering.
+* Make `delta` configurable at runtime and include a helper `compute_default_delta(graph) -> int` returning average degree (rounded).
+* Provide logging that prints how many train target edges were excluded per batch and how many edges remain in the message‑passing graph (useful debug info in early dev).
+
+---
+
+## Quick code snippet: compute δ and T\_low
+
+```python
+def compute_avg_degree(edge_index, num_nodes):
+    deg = torch.zeros(num_nodes, dtype=torch.long)
+    src, dst = edge_index
+    deg.scatter_add_(0, src, torch.ones_like(src))
+    deg.scatter_add_(0, dst, torch.ones_like(dst))
+    return int(deg.float().mean().item()), deg
+
+# build T_low mask for train_targets
+min_deg = torch.minimum(deg[src_train_mask], deg[dst_train_mask])
+Tlow_mask = min_deg < delta
+```
+
+---
+
+## Final remark for the developer / maintainer
+
+This single file is intentionally prescriptive: it provides a ready plan for implementing SpotTarget and robustness defenses in a production‑aware GNN pipeline. It follows the KDD MLG'23 SpotTarget design (training exclusion of edges adjacent to low‑degree nodes; inference exclusion of test edges) and aligns with the paper's ablation and time complexity observations. When you want, I can convert key code blocks into runnable DGL/PyG cells and a test suite (unit tests + small integration run) next.
+
+---
+
+*End of STAGE7 reference file*

@@ -1,0 +1,126 @@
+{
+  "config": {
+    "num_epochs": 10,
+    "hidden_dim": 64,
+    "num_layers": 2,
+    "learning_rate": 0.01,
+    "seed": 42,
+    "verbose": false,
+    "num_nodes": 200,
+    "num_features": 16,
+    "num_classes": 2,
+    "edge_prob": 0.05,
+    "imbalance_ratio": 2.0,
+    "use_robust_model": false,
+    "use_imbalance_handling": false
+  },
+  "dataset_info": {
+    "num_nodes": 200,
+    "num_edges": 1938,
+    "avg_degree": 19,
+    "imbalance_analysis": {
+      "train": {
+        "class_counts": [
+          75,
+          45
+        ],
+        "class_proportions": [
+          0.625,
+          0.375
+        ],
+        "total_samples": 120,
+        "num_classes": 2,
+        "imbalance_ratio": 1.6666666666666667
+      },
+      "val": {
+        "class_counts": [
+          28,
+          12
+        ],
+        "class_proportions": [
+          0.699999988079071,
+          0.30000001192092896
+        ],
+        "total_samples": 40,
+        "num_classes": 2,
+        "imbalance_ratio": 2.3333333333333335
+      },
+      "test": {
+        "class_counts": [
+          31,
+          9
+        ],
+        "class_proportions": [
+          0.7749999761581421,
+          0.22499999403953552
+        ],
+        "total_samples": 40,
+        "num_classes": 2,
+        "imbalance_ratio": 3.4444444444444446
+      },
+      "overall": {
+        "class_counts": [
+          134,
+          66
+        ],
+        "class_proportions": [
+          0.6700000166893005,
+          0.33000001311302185
+        ],
+        "total_samples": 200,
+        "num_classes": 2,
+        "imbalance_ratio": 2.0303030303030303
+      },
+      "recommendations": [
+        "Dataset appears balanced"
+      ]
+    }
+  },
+  "delta_values": [
+    0,
+    9,
+    19,
+    38,
+    190,
+    null
+  ],
+  "results": [
+    {
+      "delta": 0,
+      "experiment_id": 0,
+      "success": false,
+      "error": "name 'F' is not defined"
+    },
+    {
+      "delta": 9,
+      "experiment_id": 1,
+      "success": false,
+      "error": "name 'F' is not defined"
+    },
+    {
+      "delta": 19,
+      "experiment_id": 2,
+      "success": false,
+      "error": "name 'F' is not defined"
+    },
+    {
+      "delta": 38,
+      "experiment_id": 3,
+      "success": false,
+      "error": "name 'F' is not defined"
+    },
+    {
+      "delta": 190,
+      "experiment_id": 4,
+      "success": false,
+      "error": "name 'F' is not defined"
+    },
+    {
+      "delta": null,
+      "experiment_id": 5,
+      "success": false,
+      "error": "name 'F' is not defined"
+    }
+  ],
+  "timestamp": "2025-09-13_03-30-58"
+}
