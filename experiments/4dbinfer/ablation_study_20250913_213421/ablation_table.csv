@@ -1,0 +1,17 @@
+run_id,spot_target,cusp,trd,memory,accuracy,precision,recall,f1_score,auc,runtime,memory_mb,status
+ablation_01,True,True,True,True,0.507,0.6632,0.6831,0.673,0.5435,0.0002,0.0,success
+ablation_02,True,True,True,False,0.8939,0.6288,0.4526,0.5264,0.794,0.0,0.0,success
+ablation_03,True,True,False,True,0.7447,0.7805,0.5305,0.6317,0.6797,0.0,0.0,success
+ablation_04,True,True,False,False,0.6704,0.7476,0.4545,0.5653,0.713,0.0,0.0,success
+ablation_05,True,False,True,True,0.6914,0.5271,0.7023,0.6022,0.7149,0.0,0.0,success
+ablation_06,True,False,True,False,0.8839,0.6182,0.8329,0.7097,0.5948,0.0,0.0,success
+ablation_07,True,False,False,True,0.6596,0.7641,0.5783,0.6583,0.835,0.0001,0.0,success
+ablation_08,True,False,False,False,0.5272,0.5823,0.4907,0.5326,0.8697,0.0001,0.0,success
+ablation_09,False,True,True,True,0.7109,0.7032,0.8047,0.7506,0.8002,0.0001,0.0,success
+ablation_10,False,True,True,False,0.6075,0.8325,0.6158,0.7079,0.6796,0.0001,0.0,success
+ablation_11,False,True,False,True,0.7363,0.8414,0.6769,0.7503,0.6126,0.0,0.0,success
+ablation_12,False,True,False,False,0.7464,0.8757,0.4353,0.5815,0.6563,0.0,0.0,success
+ablation_13,False,False,True,True,0.8596,0.4633,0.8764,0.6061,0.8957,0.0,0.0,success
+ablation_14,False,False,True,False,0.5256,0.7792,0.5173,0.6218,0.8553,0.0,0.0,success
+ablation_15,False,False,False,True,0.6104,0.418,0.7756,0.5432,0.8162,0.0,0.0,success
+ablation_16,False,False,False,False,0.5594,0.602,0.8207,0.6945,0.6277,0.0,0.0,success
