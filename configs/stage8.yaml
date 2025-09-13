@@ -1,0 +1,48 @@
+# Stage 8 CUSP Configuration
+# Implements hyperparameters per STAGE8_CUSP_Reference §Hyperparameters
+
+stage8:
+  # ORC computation parameters
+  orc_delta: 0.2                    # neighborhood mass parameter {0.2,0.5,0.7}
+  orc_fast_approximation: false     # use fast degree-based approximation
+  
+  # Numerical stability
+  kappa_clip_eps: 1e-6              # curvature clipping epsilon 
+  eps: 1e-8                         # general numerical stability epsilon
+  
+  # GPR filter bank parameters
+  filter_count_L: 10                # number of filters {5,10,15,20,25}
+  gpr_alpha: 0.3                    # GPR propagation parameter {0.1,0.3,0.5,0.9}
+  gpr_dropout: 0.2                  # dropout rate {0.2,0.3,0.5}
+  
+  # Curvature encoding parameters
+  curvature_dim_dC: 16              # curvature embedding dimension {8,16,32,64}
+  
+  # Product manifold parameters
+  manifold_dim_dM: 64               # product manifold dimension {32,48,64,128,256}
+  manifold_components: 3            # number of manifold components (H/S/E)
+  
+  # Training parameters
+  lr: 1e-3                          # learning rate {1e-4,4e-3,1e-3,1e-2}
+  weight_decay: 1e-4                # weight decay {0,1e-4,5e-4}
+  seed: 42                          # random seed
+  
+  # Model integration options
+  add_self_loops: true              # add self-loops to adjacency
+  use_curvature_encoding: true      # include curvature positional encoding
+  use_cusp_pooling: true            # use attention-based pooling
+  output_mode: "full"               # {"curvature_only", "gpr_only", "full"}
+  
+  # Validation and debugging
+  validate_laplacian: true          # run Cusp Laplacian validation
+  cache_orc: true                   # cache ORC computation for reuse
+  
+# Dataset-specific overrides (can override above defaults)
+datasets:
+  ellipticpp:
+    filter_count_L: 15              # larger filter bank for complex dataset
+    manifold_dim_dM: 128            # higher dimensional manifolds
+    
+  small_test:
+    filter_count_L: 5               # fewer filters for small graphs
+    manifold_dim_dM: 32             # smaller manifolds for testing
