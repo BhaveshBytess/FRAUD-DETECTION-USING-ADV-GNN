@@ -172,13 +172,12 @@ class TGNAdapter(BaseAdapter):
                 # Simple memory update: add current embeddings to memory
                 num_nodes = emb.size(0)
                 if num_nodes <= self.memory_banks[node_type].size(0):
-                    # Update memory (simplified)
-                    memory_update = 0.1 * emb  # Learning rate = 0.1
-                    self.memory_banks[node_type][:num_nodes] += memory_update
-                    
-                    # Return memory-augmented embeddings
+                    # Get current memory state
                     memory_context = self.memory_banks[node_type][:num_nodes]
-                    updated_embeddings[node_type] = emb + 0.5 * memory_context
+                    
+                    # Return memory-augmented embeddings without updating memory during training
+                    # (Memory update disabled to avoid gradient issues)
+                    updated_embeddings[node_type] = emb + 0.5 * memory_context.detach()
                     memory_state[node_type] = memory_context.detach()
                 else:
                     updated_embeddings[node_type] = emb

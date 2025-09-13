@@ -1,0 +1,115 @@
+compute:
+  device: auto
+  gradient_accumulation: 1
+  max_memory_gb: 8
+  mixed_precision: false
+  num_workers: 4
+  pin_memory: true
+data:
+  add_self_loops: true
+  dataset: ellipticpp
+  edge_dropout: 0.0
+  normalize_features: true
+  temporal_split: true
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+evaluation:
+  explain_predictions: true
+  explanation_methods:
+  - attention
+  - gradient
+  k_values:
+  - 10
+  - 50
+  - 100
+  metrics:
+  - auc
+  - pr_auc
+  - f1
+  - precision
+  - recall
+  - precision_at_k
+  temporal_windows: true
+  window_size: 1D
+experiment:
+  ablation_components:
+  - hypergraph
+  - memory
+  - cusp
+  - tdgnn
+  - gsampler
+  - spottarget
+  - robustness
+  keep_best: true
+  log_level: INFO
+  name: ablate_cusp
+  resume_from: null
+  save_dir: experiments\stage9\quick_ablation
+  save_every: 10
+  seed: 42
+model:
+  cusp:
+    curvature_lr: 0.01
+    euclidean_dim: 64
+    hyperbolic_dim: 64
+    manifold_fusion: attention
+    spherical_dim: 64
+  dropout: 0.1
+  hidden_dim: 128
+  hypergraph:
+    hyperedge_dim: 128
+    hypergraph_dropout: 0.1
+    num_hyperlayers: 2
+  memory:
+    memory_dim: 128
+    memory_updater: gru
+    message_aggregator: last
+    message_dim: 128
+    time_dim: 128
+  name: hHGTN
+  num_heads: 8
+  num_layers: 3
+  robustness:
+    adversarial_epsilon: 0.01
+    defense_layers:
+    - input
+    - hidden
+    drop_edge_rate: 0.1
+  use_cusp: false
+  use_gsampler: true
+  use_hetero: true
+  use_hypergraph: true
+  use_memory: true
+  use_robustness: true
+  use_spottarget: true
+  use_tdgnn: true
+sampling:
+  gsampler:
+    batch_sampling: true
+    fanout:
+    - 25
+    - 15
+    - 10
+    matrix_ops: true
+  tdgnn:
+    delta_t: 3600
+    max_neighbors: 50
+    time_relaxed: true
+training:
+  batch_size: 16
+  class_weights:
+  - 1.0
+  - 10.0
+  epochs: 5
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  learning_rate: 0.001
+  loss_type: focal
+  mode: lite
+  patience: 10
+  spottarget:
+    edge_removal_prob: 0.5
+    min_degree_threshold: 2
+    remove_target_edges: true
+  weight_decay: 1e-4

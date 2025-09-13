@@ -140,18 +140,35 @@ class hHGTN(nn.Module):
         # Initialize components based on config flags
         self._build_components()
         
-        # Final classifier
-        self.classifier = nn.Sequential(
-            nn.Linear(self.hidden_dim, self.hidden_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(self.config.get('model.dropout', 0.1)),
-            nn.Linear(self.hidden_dim // 2, 2)  # Binary classification
-        )
+        # Dimension adapter to handle varying input sizes to classifier
+        self._classifier_input_dim = None
+        self._classifier_projection = None
+        
+        # Final classifier (will be built dynamically)
+        self._classifier_layers = {
+            'hidden': self.hidden_dim // 2,
+            'dropout': self.config.get('model.dropout', 0.1),
+            'output': 2  # Binary classification
+        }
         
         # Memory state for checkpointing
         self.memory_state = {}
         
         logger.info(f"Initialized hHGTN with components: {self._get_active_components()}")
+    
+    def _build_classifier(self, input_dim: int):
+        """Build classifier based on actual input dimension."""
+        if self._classifier_input_dim != input_dim:
+            self._classifier_input_dim = input_dim
+            self._classifier_projection = nn.Linear(input_dim, self.hidden_dim)
+            self.classifier = nn.Sequential(
+                self._classifier_projection,
+                nn.ReLU(),
+                nn.Linear(self.hidden_dim, self._classifier_layers['hidden']),
+                nn.ReLU(),
+                nn.Dropout(self._classifier_layers['dropout']),
+                nn.Linear(self._classifier_layers['hidden'], self._classifier_layers['output'])
+            )
     
     def _build_components(self):
         """Build model components based on configuration flags."""
@@ -307,6 +324,10 @@ class hHGTN(nn.Module):
             # For graph-level tasks, pool all embeddings
             target_embeddings = self._pool_embeddings(x)
         
+        # Build classifier if needed based on actual embedding dimension
+        embedding_dim = target_embeddings.size(-1)
+        self._build_classifier(embedding_dim)
+        
         # Apply classifier
         logits = self.classifier(target_embeddings)
         
@@ -333,11 +354,20 @@ class hHGTN(nn.Module):
     
     def _pool_embeddings(self, x_dict: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Pool embeddings across all nodes for graph-level tasks."""
+        # Handle case where x_dict might not be a dictionary
+        if not isinstance(x_dict, dict):
+            # If it's already a tensor, return it directly
+            if isinstance(x_dict, torch.Tensor):
+                return x_dict
+            else:
+                raise ValueError(f"Expected dict or tensor for pooling, got {type(x_dict)}")
+        
         pooled_embeddings = []
         for node_type, embeddings in x_dict.items():
-            # Use mean pooling for each node type
-            pooled = torch.mean(embeddings, dim=0, keepdim=True)
-            pooled_embeddings.append(pooled)
+            if isinstance(embeddings, torch.Tensor):
+                # Use mean pooling for each node type
+                pooled = torch.mean(embeddings, dim=0, keepdim=True)
+                pooled_embeddings.append(pooled)
         
         if len(pooled_embeddings) == 0:
             raise ValueError("No node embeddings found for pooling")

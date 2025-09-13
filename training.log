@@ -1,0 +1,143 @@
+2025-09-13 15:49:51,176 - __main__ - INFO - Lite mode enabled: reduced epochs and batch size
+2025-09-13 15:49:51,177 - __main__ - INFO - Using device: cpu
+2025-09-13 15:49:51,185 - __main__ - INFO - Experiment directory: experiments\stage9\test_lite_run
+2025-09-13 15:49:51,186 - __main__ - INFO - Trainer initialized with config: test_lite_run
+2025-09-13 15:49:51,219 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:50:29,419 - __main__ - INFO - Lite mode enabled: reduced epochs and batch size
+2025-09-13 15:50:29,424 - __main__ - INFO - Using device: cpu
+2025-09-13 15:50:29,429 - __main__ - INFO - Experiment directory: experiments\stage9\test_lite_run
+2025-09-13 15:50:29,430 - __main__ - INFO - Trainer initialized with config: test_lite_run
+2025-09-13 15:50:29,448 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:51:17,897 - __main__ - INFO - Lite mode enabled: reduced epochs and batch size
+2025-09-13 15:51:17,904 - __main__ - INFO - Using device: cpu
+2025-09-13 15:51:17,920 - __main__ - INFO - Experiment directory: experiments\stage9\test_lite_run
+2025-09-13 15:51:17,921 - __main__ - INFO - Trainer initialized with config: test_lite_run
+2025-09-13 15:51:18,429 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:51:21,988 - __main__ - INFO - Model setup complete. Parameters: 459,394
+2025-09-13 15:51:21,989 - __main__ - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:51:21,990 - __main__ - INFO - Mock dataloaders created successfully
+2025-09-13 15:51:21,990 - __main__ - INFO - Starting training...
+2025-09-13 15:51:22,160 - __main__ - ERROR - Training failed with error: Can't get local object 'hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset'
+2025-09-13 15:51:46,240 - __main__ - INFO - Lite mode enabled: reduced epochs and batch size
+2025-09-13 15:51:46,240 - __main__ - INFO - Using device: cpu
+2025-09-13 15:51:46,247 - __main__ - INFO - Experiment directory: experiments\stage9\test_lite_run
+2025-09-13 15:51:46,247 - __main__ - INFO - Trainer initialized with config: test_lite_run
+2025-09-13 15:51:46,254 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:51:47,794 - __main__ - INFO - Model setup complete. Parameters: 459,394
+2025-09-13 15:51:47,794 - __main__ - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:51:47,795 - __main__ - INFO - Mock dataloaders created successfully
+2025-09-13 15:51:47,796 - __main__ - INFO - Starting training...
+2025-09-13 15:51:47,816 - __main__ - ERROR - Training failed with error: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class '__main__.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:04,949 - __main__ - INFO - Ablation runner initialized with 8 components
+2025-09-13 15:57:04,955 - __main__ - INFO - Starting component ablation study...
+2025-09-13 15:57:04,955 - __main__ - INFO - Running ablation: baseline_all
+2025-09-13 15:57:04,955 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:04,956 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:04,965 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\baseline_all
+2025-09-13 15:57:04,966 - scripts.train_hhgt - INFO - Trainer initialized with config: baseline_all
+2025-09-13 15:57:05,784 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,501 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,501 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,501 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,502 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,510 - __main__ - ERROR - Ablation baseline_all failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,511 - __main__ - INFO - Running ablation: ablate_hypergraph
+2025-09-13 15:57:11,511 - __main__ - INFO - Component config: {'use_hypergraph': False, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,511 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,517 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_hypergraph
+2025-09-13 15:57:11,517 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_hypergraph
+2025-09-13 15:57:11,520 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,522 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,522 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,523 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,523 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,525 - __main__ - ERROR - Ablation ablate_hypergraph failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,526 - __main__ - INFO - Running ablation: ablate_hetero
+2025-09-13 15:57:11,526 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': False, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,526 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,533 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_hetero
+2025-09-13 15:57:11,533 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_hetero
+2025-09-13 15:57:11,536 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,538 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,538 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,539 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,539 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,543 - __main__ - ERROR - Ablation ablate_hetero failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,544 - __main__ - INFO - Running ablation: ablate_memory
+2025-09-13 15:57:11,548 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': False, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,548 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,557 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_memory
+2025-09-13 15:57:11,561 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_memory
+2025-09-13 15:57:11,564 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,577 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 15,874
+2025-09-13 15:57:11,578 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,578 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,578 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,580 - __main__ - ERROR - Ablation ablate_memory failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,581 - __main__ - INFO - Running ablation: ablate_cusp
+2025-09-13 15:57:11,581 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': False, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,581 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,588 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_cusp
+2025-09-13 15:57:11,588 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_cusp
+2025-09-13 15:57:11,590 - src.models.hhgt - INFO - Initialized hHGTN with components: ['Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,593 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 392,386
+2025-09-13 15:57:11,593 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,594 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,595 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,597 - __main__ - ERROR - Ablation ablate_cusp failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,598 - __main__ - INFO - Running ablation: ablate_tdgnn
+2025-09-13 15:57:11,598 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': False, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,598 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,649 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_tdgnn
+2025-09-13 15:57:11,649 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_tdgnn
+2025-09-13 15:57:11,652 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget']
+2025-09-13 15:57:11,654 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,655 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,655 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,655 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,658 - __main__ - ERROR - Ablation ablate_tdgnn failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,659 - __main__ - INFO - Running ablation: ablate_gsampler
+2025-09-13 15:57:11,659 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': False, 'use_spottarget': True, 'use_robustness': True}
+2025-09-13 15:57:11,660 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,666 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_gsampler
+2025-09-13 15:57:11,666 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_gsampler
+2025-09-13 15:57:11,669 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,671 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,671 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,672 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,672 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,674 - __main__ - ERROR - Ablation ablate_gsampler failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,675 - __main__ - INFO - Running ablation: ablate_spottarget
+2025-09-13 15:57:11,676 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': False, 'use_robustness': True}
+2025-09-13 15:57:11,676 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,683 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_spottarget
+2025-09-13 15:57:11,683 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_spottarget
+2025-09-13 15:57:11,686 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'Robustness', 'TDGNN']
+2025-09-13 15:57:11,688 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,689 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,690 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,690 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,693 - __main__ - ERROR - Ablation ablate_spottarget failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,693 - __main__ - INFO - Running ablation: ablate_robustness
+2025-09-13 15:57:11,694 - __main__ - INFO - Component config: {'use_hypergraph': True, 'use_hetero': True, 'use_memory': True, 'use_cusp': True, 'use_tdgnn': True, 'use_gsampler': True, 'use_spottarget': True, 'use_robustness': False}
+2025-09-13 15:57:11,694 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,702 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\ablate_robustness
+2025-09-13 15:57:11,702 - scripts.train_hhgt - INFO - Trainer initialized with config: ablate_robustness
+2025-09-13 15:57:11,704 - src.models.hhgt - INFO - Initialized hHGTN with components: ['CUSP', 'Hypergraph', 'Heterogeneous', 'Memory', 'SpotTarget', 'TDGNN']
+2025-09-13 15:57:11,707 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 399,874
+2025-09-13 15:57:11,708 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,708 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,709 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,711 - __main__ - ERROR - Ablation ablate_robustness failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,711 - __main__ - INFO - Running ablation: minimal_hetero
+2025-09-13 15:57:11,712 - __main__ - INFO - Component config: {'use_hypergraph': False, 'use_hetero': True, 'use_memory': False, 'use_cusp': False, 'use_tdgnn': False, 'use_gsampler': False, 'use_spottarget': False, 'use_robustness': False}
+2025-09-13 15:57:11,712 - scripts.train_hhgt - INFO - Using device: cpu
+2025-09-13 15:57:11,719 - scripts.train_hhgt - INFO - Experiment directory: experiments\stage9\quick_ablation\minimal_hetero
+2025-09-13 15:57:11,719 - scripts.train_hhgt - INFO - Trainer initialized with config: minimal_hetero
+2025-09-13 15:57:11,720 - src.models.hhgt - INFO - Initialized hHGTN with components: ['Heterogeneous']
+2025-09-13 15:57:11,722 - scripts.train_hhgt - INFO - Model setup complete. Parameters: 8,386
+2025-09-13 15:57:11,722 - scripts.train_hhgt - INFO - Loading dataset: ellipticpp (mode: lite)
+2025-09-13 15:57:11,723 - scripts.train_hhgt - INFO - Mock dataloaders created successfully
+2025-09-13 15:57:11,723 - scripts.train_hhgt - INFO - Starting training...
+2025-09-13 15:57:11,726 - __main__ - ERROR - Ablation minimal_hetero failed: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists; found <class 'scripts.train_hhgt.hHGTNTrainer._create_mock_dataloaders.<locals>.MockDataset._create_mock_batch.<locals>.MockBatch'>
+2025-09-13 15:57:11,727 - __main__ - INFO - Ablation study completed!

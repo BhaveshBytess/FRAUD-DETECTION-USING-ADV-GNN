@@ -201,7 +201,14 @@ class EnhancedHHGTNTrainer:
             with torch.no_grad():
                 output = self.model(mock_data)
             
-            logger.info(f"✅ Compatibility test passed! Output shape: {output.shape}")
+            # Check if output is a dictionary with logits
+            if isinstance(output, dict) and 'logits' in output:
+                output_shape = output['logits'].shape
+                logger.info(f"✅ Compatibility test passed! Output shape: {output_shape}")
+            elif hasattr(output, 'shape'):
+                logger.info(f"✅ Compatibility test passed! Output shape: {output.shape}")
+            else:
+                logger.info(f"✅ Compatibility test passed! Output type: {type(output)}")
             return True
             
         except Exception as e:
@@ -270,12 +277,22 @@ class EnhancedHHGTNTrainer:
             
             # Create mock batch
             batch = self._create_mock_batch(training_config['batch_size'])
-            mock_labels = torch.randint(0, 2, (training_config['batch_size'],), device=self.device)
+            
+            # Create labels that match the model output size
+            # Model outputs graph-level predictions, so we need one label per graph
+            mock_labels = torch.randint(0, 2, (1,), device=self.device)  # Single graph label
             
             # Forward pass
             optimizer.zero_grad()
             output = self.model(batch)
-            loss = criterion(output, mock_labels)
+            
+            # Extract logits from output if it's a dictionary
+            if isinstance(output, dict) and 'logits' in output:
+                logits = output['logits']
+            else:
+                logits = output
+                
+            loss = criterion(logits, mock_labels)
             
             # Backward pass
             loss.backward()
