@@ -1,0 +1,140 @@
+# Stage 9: hHGTN Full Integration Configuration
+# Combines all previous stages into unified pipeline
+
+# Model Architecture Toggles
+model:
+  name: "hHGTN"
+  
+  # Component Enables (master switches)
+  use_hypergraph: true      # Stage 5: Hypergraph layers (PhenomNN)
+  use_hetero: true          # Stage 3: HGT/R-GCN heterogeneous layers  
+  use_memory: true          # Stage 4: TGN temporal memory
+  use_cusp: true            # Stage 8: CUSP manifold embeddings
+  use_tdgnn: true           # Stage 6: TDGNN time-relaxed sampling
+  use_gsampler: true        # Stage 6: G-Sampler matrix operations
+  use_spottarget: true      # Stage 7: SpotTarget training discipline
+  use_robustness: true      # Stage 7: RGNN defenses & DropEdge
+  
+  # Architecture Parameters
+  hidden_dim: 128
+  num_layers: 3
+  num_heads: 8
+  dropout: 0.1
+  
+  # Memory Configuration (TGN)
+  memory:
+    memory_dim: 128
+    time_dim: 128
+    message_dim: 128
+    memory_updater: "gru"
+    message_aggregator: "last"
+    
+  # CUSP Configuration
+  cusp:
+    euclidean_dim: 64
+    hyperbolic_dim: 64
+    spherical_dim: 64
+    curvature_lr: 0.01
+    manifold_fusion: "attention"  # concat, sum, attention
+    
+  # Hypergraph Configuration  
+  hypergraph:
+    hyperedge_dim: 128
+    num_hyperlayers: 2
+    hypergraph_dropout: 0.1
+    
+  # Robustness Configuration
+  robustness:
+    drop_edge_rate: 0.1
+    adversarial_epsilon: 0.01
+    defense_layers: ["input", "hidden"]
+
+# Training Configuration
+training:
+  mode: "lite"              # lite, full
+  batch_size: 512
+  learning_rate: 0.001
+  weight_decay: 1e-4
+  epochs: 100
+  patience: 10
+  
+  # Loss Configuration
+  loss_type: "focal"        # bce, focal, weighted_bce
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  class_weights: [1.0, 10.0]  # [normal, fraud]
+  
+  # SpotTarget Configuration
+  spottarget:
+    remove_target_edges: true
+    min_degree_threshold: 2
+    edge_removal_prob: 0.5
+
+# Sampling Configuration (TDGNN + GSampler)
+sampling:
+  # TDGNN Time-Relaxed Sampling
+  tdgnn:
+    delta_t: 3600           # 1 hour time window
+    max_neighbors: 50
+    time_relaxed: true
+    
+  # GSampler Matrix Operations
+  gsampler:
+    fanout: [25, 15, 10]    # multi-hop sampling
+    batch_sampling: true
+    matrix_ops: true
+
+# Data Configuration
+data:
+  dataset: "ellipticpp"
+  temporal_split: true
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  
+  # Preprocessing
+  normalize_features: true
+  add_self_loops: true
+  edge_dropout: 0.0
+
+# Experiment Configuration
+experiment:
+  name: "hhgt_stage9"
+  save_dir: "experiments/stage9"
+  log_level: "INFO"
+  seed: 42
+  
+  # Checkpointing
+  save_every: 10
+  keep_best: true
+  resume_from: null
+  
+  # Ablation Studies
+  ablation_components: [
+    "hypergraph", "memory", "cusp", 
+    "tdgnn", "gsampler", "spottarget", "robustness"
+  ]
+
+# Compute Configuration
+compute:
+  device: "auto"            # auto, cpu, cuda
+  num_workers: 4
+  pin_memory: true
+  mixed_precision: false
+  
+  # Memory Management
+  gradient_accumulation: 1
+  max_memory_gb: 8
+  
+# Evaluation Configuration
+evaluation:
+  metrics: ["auc", "pr_auc", "f1", "precision", "recall", "precision_at_k"]
+  k_values: [10, 50, 100]
+  
+  # Temporal Evaluation
+  temporal_windows: true
+  window_size: "1D"         # 1 day windows for temporal analysis
+  
+  # Explainability
+  explain_predictions: true
+  explanation_methods: ["attention", "gradient"]
