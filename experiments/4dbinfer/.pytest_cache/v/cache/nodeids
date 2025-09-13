@@ -1,0 +1,12 @@
+[
+  "tests/test_4dbinfer_adapter.py::TestAblationMatrix::test_ablation_combinations",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_ablation_controls",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_adapter_error_handling",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_dgl_to_hypergraph_adapter",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_hetero_hhgt_forward_pass",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_hetero_hhgt_initialization",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_hhgt_solution_config",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_hhgt_solution_initialization",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_synthetic_data_flow",
+  "tests/test_4dbinfer_adapter.py::TestHHGTAdapter::test_temporal_feature_extraction"
+]

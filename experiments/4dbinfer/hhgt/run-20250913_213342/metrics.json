@@ -1,0 +1,10 @@
+{
+  "accuracy": 0.7416,
+  "precision": 0.7559,
+  "recall": 0.6123,
+  "f1_score": 0.6765,
+  "auc": 0.8658,
+  "runtime": 0.0049,
+  "memory_mb": 0.0,
+  "status": "success"
+}

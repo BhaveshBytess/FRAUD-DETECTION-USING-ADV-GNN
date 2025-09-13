@@ -1,0 +1,33 @@
+batch_size: 32
+conv:
+  activation: relu
+  dropout: 0.1
+  num_heads: 8
+  use_norm: true
+cusp_enabled: true
+dropout: 0.1
+embed_ntypes: []
+enable_temporal_sampling: true
+epochs: 200
+eval_batch_size: 512
+eval_fanouts: null
+eval_trials: 10
+fanouts:
+- 10
+- 10
+- 10
+feat_encode_size: 256
+g_sampler_enabled: true
+hid_size: 64
+hypergraph_construction_method: attention
+lr: 0.001
+memory_enabled: true
+negative_sampling_ratio: 5
+num_hyperedges: 200
+num_layers: 3
+patience: 15
+predictor: null
+spot_target_enabled: true
+time_budget: 0
+trd_enabled: true
+use_multiprocessing: true

@@ -1,0 +1,62 @@
+
+4DBInfer hHGTN Integration Evaluation Log
+Run ID: 20250913_211440
+Timestamp: 2025-09-13T21:14:40.083424
+
+Configuration:
+batch_size: 64
+conv: !!python/object:hhgt_adapter.HHGTConvConfig
+  __dict__:
+    activation: relu
+    dropout: 0.1
+    num_heads: 8
+    use_norm: true
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set {}
+  __pydantic_private__: null
+cusp_enabled: true
+dropout: 0.1
+embed_ntypes: []
+enable_temporal_sampling: true
+epochs: 5
+eval_batch_size: 64
+eval_fanouts: null
+eval_trials: 10
+fanouts:
+- 10
+- 10
+feat_encode_size: 256
+g_sampler_enabled: true
+hid_size: 64
+hypergraph_construction_method: attention
+lr: 0.01
+memory_enabled: true
+negative_sampling_ratio: 5
+num_hyperedges: 64
+num_layers: 2
+patience: 15
+predictor: null
+spot_target_enabled: true
+time_budget: 0
+trd_enabled: true
+use_multiprocessing: true
+
+
+Execution Log:
+Model initialized with 1 parameters
+Model size: 0.00 MB
+Forward pass completed in 0.0193 seconds
+Evaluation metrics computed successfully
+
+Final Metrics:
+{
+  "accuracy": 0.492,
+  "precision": 0.5294,
+  "recall": 0.5333,
+  "f1": 0.5314,
+  "auc": 0.5793,
+  "runtime_seconds": 0.0193,
+  "memory_mb": 0,
+  "num_parameters": 1,
+  "model_size_mb": 3.814697265625e-06
+}
