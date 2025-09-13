@@ -1,0 +1,234 @@
+# Dataset-Adaptive hHGTN Configurations
+# Different presets optimized for specific dataset types and characteristics
+
+# =============================================================================
+# ELLIPTIC++ DATASET (Heterogeneous + Temporal)
+# Bitcoin transaction graphs with multiple node/edge types and temporal dynamics
+# =============================================================================
+ellipticpp:
+  model:
+    name: "hHGTN_EllipticPP"
+    
+    # Optimal components for cryptocurrency transaction analysis
+    use_hypergraph: true      # ✓ Multi-entity transactions (user-tx-address)
+    use_hetero: true          # ✓ Multiple node types (tx, address, user)
+    use_memory: true          # ✓ Temporal transaction patterns
+    use_cusp: true            # ✓ Scale-free network structure
+    use_tdgnn: false          # ✗ Already has good temporal splits
+    use_gsampler: true        # ✓ Large graph sampling needed
+    use_spottarget: true      # ✓ Critical for fraud detection leakage
+    use_robustness: true      # ✓ Adversarial attacks in crypto
+    
+    hidden_dim: 128
+    num_layers: 3
+    
+  training:
+    mode: "full"
+    batch_size: 256
+    learning_rate: 0.001
+    epochs: 100
+    loss_type: "focal"        # Imbalanced fraud data
+    focal_gamma: 2.0
+
+# =============================================================================
+# TABULAR-TO-GRAPH DATASETS (Converted from CSV/Pandas)
+# Credit card transactions, bank transfers converted to graph format
+# =============================================================================
+tabular_converted:
+  model:
+    name: "hHGTN_Tabular"
+    
+    # Simpler pipeline for converted tabular data
+    use_hypergraph: false     # ✗ No natural hyperedges in tabular
+    use_hetero: true          # ✓ User-transaction-merchant nodes
+    use_memory: false         # ✗ Usually no temporal memory needed
+    use_cusp: false           # ✗ Not scale-free network
+    use_tdgnn: false          # ✗ Simple temporal ordering
+    use_gsampler: false       # ✗ Smaller graphs
+    use_spottarget: true      # ✓ Still need leakage protection
+    use_robustness: false     # ✗ Less adversarial setting
+    
+    hidden_dim: 64            # Smaller networks
+    num_layers: 2
+    
+  training:
+    mode: "lite"
+    batch_size: 512
+    learning_rate: 0.003
+    epochs: 50
+    loss_type: "weighted_bce"
+
+# =============================================================================
+# HOMOGENEOUS GRAPH DATASETS (Single node/edge type)
+# Simple fraud networks, social networks converted to fraud detection
+# =============================================================================
+homogeneous:
+  model:
+    name: "hHGTN_Homogeneous"
+    
+    # Minimal pipeline for simple graphs
+    use_hypergraph: false     # ✗ No hyperedges
+    use_hetero: false         # ✗ Single node type
+    use_memory: false         # ✗ No temporal dynamics
+    use_cusp: true            # ✓ May have hierarchical structure
+    use_tdgnn: false          # ✗ No temporal sampling needed
+    use_gsampler: true        # ✓ May be large
+    use_spottarget: false     # ✗ Simpler leakage patterns
+    use_robustness: true      # ✓ Basic robustness
+    
+    hidden_dim: 64
+    num_layers: 2
+
+# =============================================================================
+# SOCIAL NETWORK FRAUD (Twitter, Facebook, etc.)
+# User-post-comment networks with temporal dynamics
+# =============================================================================
+social_network:
+  model:
+    name: "hHGTN_Social"
+    
+    # Social media specific optimizations
+    use_hypergraph: true      # ✓ Multi-user interactions
+    use_hetero: true          # ✓ User-post-comment types
+    use_memory: true          # ✓ Temporal posting patterns
+    use_cusp: true            # ✓ Scale-free social networks
+    use_tdgnn: true           # ✓ Time-aware sampling important
+    use_gsampler: true        # ✓ Very large networks
+    use_spottarget: true      # ✓ Profile linkage issues
+    use_robustness: true      # ✓ Bot attacks common
+    
+    hidden_dim: 256           # Larger for complex social patterns
+    num_layers: 4
+
+# =============================================================================
+# FINANCIAL NETWORK (Banking, Payment systems)
+# Account-transaction-institution networks
+# =============================================================================
+financial:
+  model:
+    name: "hHGTN_Financial"
+    
+    # Banking and payment system optimizations
+    use_hypergraph: true      # ✓ Multi-party transactions
+    use_hetero: true          # ✓ Account-transaction-bank types
+    use_memory: true          # ✓ Account balance history
+    use_cusp: false           # ✗ More regulated network structure
+    use_tdgnn: true           # ✓ Time-sensitive fraud detection
+    use_gsampler: false       # ✗ Moderate size networks
+    use_spottarget: true      # ✓ Critical for compliance
+    use_robustness: true      # ✓ Sophisticated attacks
+    
+    hidden_dim: 128
+    num_layers: 3
+
+# =============================================================================
+# E-COMMERCE FRAUD (Amazon, eBay, etc.)
+# User-product-seller-review networks
+# =============================================================================
+ecommerce:
+  model:
+    name: "hHGTN_Ecommerce"
+    
+    # E-commerce specific fraud patterns
+    use_hypergraph: true      # ✓ User-product-seller-review interactions
+    use_hetero: true          # ✓ Multiple entity types
+    use_memory: false         # ✗ Less temporal memory dependency
+    use_cusp: true            # ✓ Power-law product popularity
+    use_tdgnn: false          # ✗ Less time-critical
+    use_gsampler: true        # ✓ Large product catalogs
+    use_spottarget: false     # ✗ Different leakage patterns
+    use_robustness: true      # ✓ Review manipulation attacks
+    
+    hidden_dim: 96
+    num_layers: 3
+
+# =============================================================================
+# SMALL DATASET / DEVELOPMENT MODE
+# For testing, prototyping, and small datasets
+# =============================================================================
+development:
+  model:
+    name: "hHGTN_Dev"
+    
+    # Minimal configuration for fast iteration
+    use_hypergraph: false     # ✗ Keep simple
+    use_hetero: true          # ✓ Basic heterogeneous functionality
+    use_memory: false         # ✗ No memory overhead
+    use_cusp: false           # ✗ No manifold complexity
+    use_tdgnn: false          # ✗ No sampling complexity
+    use_gsampler: false       # ✗ Small graphs
+    use_spottarget: false     # ✗ No leakage complexity
+    use_robustness: false     # ✗ No robustness overhead
+    
+    hidden_dim: 32            # Very small for speed
+    num_layers: 1
+    
+  training:
+    mode: "lite"
+    batch_size: 64
+    learning_rate: 0.01       # Faster learning
+    epochs: 10                # Quick iteration
+    
+# =============================================================================
+# BENCHMARK MODE
+# For systematic evaluation and comparison
+# =============================================================================
+benchmark:
+  model:
+    name: "hHGTN_Benchmark"
+    
+    # Standardized configuration for fair comparison
+    use_hypergraph: true
+    use_hetero: true
+    use_memory: true
+    use_cusp: true
+    use_tdgnn: false          # ✗ Disable sampling for fair comparison
+    use_gsampler: false       # ✗ Disable sampling for fair comparison
+    use_spottarget: false     # ✗ Standard training for comparison
+    use_robustness: false     # ✗ Standard robustness
+    
+    hidden_dim: 128           # Standard size
+    num_layers: 3
+    
+  training:
+    mode: "full"
+    batch_size: 256
+    epochs: 100
+    learning_rate: 0.001
+
+# =============================================================================
+# AUTO-DETECT CONFIGURATION RULES
+# Automatically select best configuration based on dataset characteristics
+# =============================================================================
+auto_detect_rules:
+  
+  # If dataset has temporal edge attributes
+  temporal_data:
+    enable: ["use_memory", "use_tdgnn"]
+    
+  # If dataset has >10K nodes
+  large_graph:
+    enable: ["use_gsampler"]
+    disable: ["use_memory"]  # Memory can be expensive
+    
+  # If dataset has multiple node types
+  heterogeneous_data:
+    enable: ["use_hetero"]
+    
+  # If dataset has >3 node types
+  complex_heterogeneous:
+    enable: ["use_hypergraph"]
+    
+  # If fraud ratio < 5%
+  highly_imbalanced:
+    training_config:
+      loss_type: "focal"
+      focal_gamma: 3.0
+      
+  # If dataset is synthetic/clean
+  clean_data:
+    disable: ["use_robustness"]
+    
+  # If dataset has known adversarial setting
+  adversarial_setting:
+    enable: ["use_robustness", "use_spottarget"]
