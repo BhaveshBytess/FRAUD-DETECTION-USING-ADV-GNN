@@ -1,0 +1,68 @@
+{
+  "baseline_metrics": {
+    "baseline_auc": 0.5099999904632568,
+    "baseline_f1": 0.6560386633546339
+  },
+  "component_effects": {
+    "use_cusp": {
+      "auc_effect": -0.1873180437612783,
+      "f1_effect": 0.0,
+      "auc_delta": -0.0033333500226339075,
+      "f1_delta": 0.0,
+      "n_runs": 3
+    },
+    "use_hypergraph": {
+      "auc_effect": -0.3086072911724366,
+      "f1_effect": 0.0,
+      "auc_delta": -0.006666680177052853,
+      "f1_delta": 0.0,
+      "n_runs": 3
+    },
+    "use_memory": {
+      "auc_effect": -1.9999990065860895,
+      "f1_effect": 0.0,
+      "auc_delta": -0.020000000794728634,
+      "f1_delta": 0.0,
+      "n_runs": 3
+    },
+    "use_spottarget": {
+      "auc_effect": 0.0,
+      "f1_effect": 0.0,
+      "auc_delta": 0.0,
+      "f1_delta": 0.0,
+      "n_runs": 3
+    },
+    "use_gsampler": {
+      "auc_effect": 0.0,
+      "f1_effect": 0.0,
+      "auc_delta": 0.0,
+      "f1_delta": 0.0,
+      "n_runs": 3
+    }
+  },
+  "defense_results": {
+    "none": {
+      "auc_mean": 0.5138888839218352,
+      "auc_std": 0.017283813349960663,
+      "f1_mean": 0.6034478207983444,
+      "f1_std": 0.15313982459506792,
+      "n_runs": 36
+    },
+    "dropedge": {
+      "auc_mean": 0.5139999945958456,
+      "auc_std": 0.01882247729752556,
+      "f1_mean": 0.6426926472474518,
+      "f1_std": 0.029639260183212824,
+      "n_runs": 15
+    },
+    "spectral": {
+      "auc_mean": 0.5125640982236618,
+      "auc_std": 0.01665721620969696,
+      "f1_mean": 0.6278808980409981,
+      "f1_std": 0.10547504481404077,
+      "n_runs": 39
+    }
+  },
+  "total_runs": 90,
+  "successful_runs": 90
+}

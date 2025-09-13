@@ -1,0 +1,133 @@
+{
+  "ablation_statistics": {
+    "use_cusp": {
+      "baseline_f1_mean": 0.6560386633546339,
+      "disabled_f1_mean": 0.6195237740428956,
+      "f1_difference": 0.0365148893117383,
+      "f1_tstat": 1.7416043029351949,
+      "f1_pvalue": 0.09061982352741912,
+      "f1_cohens_d": 1.0502269102008186,
+      "baseline_auc_mean": 0.5099999904632568,
+      "disabled_auc_mean": 0.5103030222834963,
+      "auc_difference": -0.0003030318202394966,
+      "auc_tstat": -0.043695257464345647,
+      "auc_pvalue": 0.9654029363375112,
+      "auc_cohens_d": -0.02634923165949284
+    },
+    "use_hypergraph": {
+      "baseline_f1_mean": 0.6560386633546339,
+      "disabled_f1_mean": 0.5906718610007615,
+      "f1_difference": 0.06536680235387238,
+      "f1_tstat": 0.6862447385497935,
+      "f1_pvalue": 0.4960034376532636,
+      "f1_cohens_d": 0.409197302559709,
+      "baseline_auc_mean": 0.5099999904632568,
+      "disabled_auc_mean": 0.5133333298895094,
+      "auc_difference": -0.0033333394262525795,
+      "auc_tstat": -0.29427316431373296,
+      "auc_pvalue": 0.7698730437267123,
+      "auc_cohens_d": -0.1754706131625259
+    },
+    "use_memory": {
+      "baseline_f1_mean": 0.6560386633546339,
+      "disabled_f1_mean": 0.5850053479706696,
+      "f1_difference": 0.07103331538396429,
+      "f1_tstat": 0.7230174845448079,
+      "f1_pvalue": 0.473583744018093,
+      "f1_cohens_d": 0.43208559128847107,
+      "baseline_auc_mean": 0.5099999904632568,
+      "disabled_auc_mean": 0.5154761828127361,
+      "auc_difference": -0.00547619234947927,
+      "auc_tstat": -0.5302753248891534,
+      "auc_pvalue": 0.5986489515387259,
+      "auc_cohens_d": -0.3169001195658033
+    },
+    "use_spottarget": {
+      "baseline_f1_mean": 0.6560386633546339,
+      "disabled_f1_mean": 0.6258739122120265,
+      "f1_difference": 0.030164751142607416,
+      "f1_tstat": 0.4909139963130642,
+      "f1_pvalue": 0.6259834445406551,
+      "f1_cohens_d": 0.29337722655802667,
+      "baseline_auc_mean": 0.5099999904632568,
+      "disabled_auc_mean": 0.5128571391105652,
+      "auc_difference": -0.0028571486473083496,
+      "auc_tstat": -0.2831727386831065,
+      "auc_pvalue": 0.7784032742201814,
+      "auc_cohens_d": -0.16922807932881048
+    },
+    "use_gsampler": {
+      "baseline_f1_mean": 0.6560386633546339,
+      "disabled_f1_mean": 0.640277484613606,
+      "f1_difference": 0.015761178741027893,
+      "f1_tstat": 0.841886101872308,
+      "f1_pvalue": 0.40573464749023225,
+      "f1_cohens_d": 0.5076764211137033,
+      "baseline_auc_mean": 0.5099999904632568,
+      "disabled_auc_mean": 0.5112121141318119,
+      "auc_difference": -0.001212123668555054,
+      "auc_tstat": -0.13859700286583848,
+      "auc_pvalue": 0.8905862637842455,
+      "auc_cohens_d": -0.08357713737705424
+    }
+  },
+  "scalability_metrics": {
+    "node_range": [
+      500,
+      2000
+    ],
+    "runtime_scaling": -1.3914687292916453e-05,
+    "memory_scaling": 0.09113616071428568,
+    "peak_throughput": 29317.061237042784,
+    "throughput_at_1k": 29317.061237042784
+  },
+  "robustness_summary": {
+    "edge_flips": {
+      "total_tests": 40,
+      "avg_f1_drop": -0.15893413418891,
+      "max_f1_drop": 0.6821192052980132
+    },
+    "feature_drift": {
+      "total_tests": 30,
+      "avg_f1_drop": 0.0220656154366347,
+      "max_f1_drop": 0.6821192052980132
+    },
+    "temporal_shift": {
+      "total_tests": 10,
+      "avg_f1_drop": 0.06802251274032145,
+      "max_f1_drop": 0.7119741100323624
+    },
+    "defense_effectiveness": {
+      "baseline": {
+        "mean_f1_drop": 0.0005472926888297341,
+        "std_f1_drop": 0.0014480003490073342,
+        "worst_case_drop": 0.004378341510637873
+      },
+      "spottarget": {
+        "mean_f1_drop": -0.18543451760258273,
+        "std_f1_drop": 0.5770541103892899,
+        "worst_case_drop": 0.6798679867986799
+      },
+      "dropedge": {
+        "mean_f1_drop": -0.270423625300838,
+        "std_f1_drop": 0.4866773415351195,
+        "worst_case_drop": 0.6821192052980132
+      },
+      "spectral": {
+        "mean_f1_drop": -0.16910573769559858,
+        "std_f1_drop": 0.29489039894912733,
+        "worst_case_drop": 0.002296690677523694
+      },
+      "combined": {
+        "mean_f1_drop": -0.17025408303436043,
+        "std_f1_drop": 0.294226658253565,
+        "worst_case_drop": 0.0
+      }
+    }
+  },
+  "metadata": {
+    "analysis_timestamp": "2025-09-13T22:44:26.710385",
+    "total_experiments": 173,
+    "stage": "Stage 12 - Complete"
+  }
+}

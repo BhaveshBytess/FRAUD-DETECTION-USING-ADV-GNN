@@ -1,0 +1,32 @@
+=== Ablation Run Log: ablation_010_bb6d818f_42 ===
+Timestamp: 2025-09-13T22:04:23.825445
+Git Hash: 1434befb
+
+Configuration:
+  use_cusp: True
+  use_hypergraph: True
+  use_memory: False
+  use_spottarget: True
+  use_gsampler: True
+  use_rg_defense: none
+
+Results:
+  run_id: ablation_010_bb6d818f_42
+  config_hash: bb6d818f
+  seed: 42
+  git_hash: 1434befb
+  mode: lite
+  runtime_s: 0.3977327346801758
+  node_count: 1000
+  edge_count: 0
+  peak_mem_mb: 0.0
+  accuracy: 0.4950000047683716
+  auc: 0.5299999713897705
+  f1: 0.6622073578595317
+  precision: 0.495
+  recall: 1.0
+  tp: 99
+  fp: 101
+  fn: 0
+  tn: 0
+

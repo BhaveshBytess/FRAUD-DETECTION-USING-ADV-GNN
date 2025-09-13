@@ -1,0 +1,39 @@
+# Stage 12 Ultra-Lite Scalability Configuration
+# Extremely fast scalability testing for quick validation
+
+scalability_tests:
+  # Very small graph sizes for ultra-fast testing
+  node_counts: [500, 1000, 2000]  # Small sizes only
+  
+  # Single batch size and fanout for speed
+  batch_sizes: [256]     # Only one batch size
+  fanouts: [10]          # Only one fanout setting
+  
+  # Model configuration (baseline)
+  model_config:
+    use_cusp: true
+    use_hypergraph: true
+    use_memory: true
+    use_spottarget: true
+    use_gsampler: true
+    use_rg_defense: none
+    hidden_dim: 32         # REDUCED hidden dimension for speed
+    num_heads: 2           # REDUCED attention heads
+
+# Ultra-lite experiment settings
+experiment:
+  epochs_per_test: 1     # ONLY 1 epoch for ultra-fast testing
+  seeds: [42]            # Single seed
+  timeout_minutes: 2     # Very short timeout
+  
+# Output settings
+output:
+  results_dir: results
+  csv_filename: scalability_ultra_lite.csv
+  plots_dir: results
+  
+# Memory monitoring
+monitoring:
+  track_memory: true
+  memory_interval: 1.0   # Less frequent monitoring
+  peak_memory_only: true

@@ -1,0 +1,57 @@
+# Stage 12 Ablation Grid Configuration
+# Systematic testing of hHGTN components
+
+ablation_grid:
+  # Core hHGTN Components
+  use_cusp: [true, false]  # CUSP attention mechanism
+  use_hypergraph: [true, false]  # Hypergraph modeling
+  use_memory: [true, false]  # TGN memory module
+  use_spottarget: [true, false]  # SpotTarget data leakage prevention
+  use_gsampler: [true, false]  # TRD/G-Sampler temporal sampling
+  
+  # RGNN Defense Mechanisms
+  use_rg_defense: [none, dropedge, spectral]  # Robustness defenses
+
+# Baseline Configuration (full model)
+baseline:
+  use_cusp: true
+  use_hypergraph: true
+  use_memory: true
+  use_spottarget: true
+  use_gsampler: true
+  use_rg_defense: none
+
+# Experiment Settings
+experiment:
+  mode: lite  # lite, full
+  seeds: [42, 123, 456]  # Multiple seeds for statistical significance
+  max_runs: 30  # Limit combinatorial explosion
+  sampling_strategy: stratified  # random, stratified, full
+  
+  # Runtime constraints
+  max_epochs: 10  # For lite mode
+  early_stopping_patience: 3
+  timeout_minutes: 30  # Per run timeout
+
+# Dataset Configuration
+dataset:
+  name: ellipticpp
+  train_ratio: 0.6
+  val_ratio: 0.2
+  test_ratio: 0.2
+  temporal_split: true  # Use temporal splits for realism
+
+# Metrics to Track
+metrics:
+  primary: [auc, f1, recall]
+  secondary: [precision, pr_auc, fpr]
+  efficiency: [runtime_s, peak_mem_mb, throughput_nodes_per_sec]
+  metadata: [config_hash, seed, git_hash, node_count, edge_count]
+
+# Output Configuration
+output:
+  results_dir: results  # Relative to ablation directory
+  logs_dir: ../logs     # Relative to stage12 directory
+  save_models: false  # Only save metrics for ablation
+  csv_filename: ablation_table.csv
+  detailed_logs: true

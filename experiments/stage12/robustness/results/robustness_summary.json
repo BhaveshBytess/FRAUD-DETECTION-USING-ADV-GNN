@@ -1,0 +1,17 @@
+{
+  "edge_flips": {
+    "total_tests": 40,
+    "avg_f1_drop": -0.15893413418891,
+    "max_f1_drop": 0.6821192052980132
+  },
+  "feature_drift": {
+    "total_tests": 30,
+    "avg_f1_drop": 0.0220656154366347,
+    "max_f1_drop": 0.6821192052980132
+  },
+  "temporal_shift": {
+    "total_tests": 10,
+    "avg_f1_drop": 0.06802251274032145,
+    "max_f1_drop": 0.7119741100323624
+  }
+}
