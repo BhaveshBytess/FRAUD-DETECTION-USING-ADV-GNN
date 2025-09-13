@@ -1,0 +1,254 @@
+# Stage 10 — Explainability & Interpretability Reference
+
+**Project:** hHGTN — Stage 10
+
+**Purpose:** Single, developer-facing reference that contains everything an agent or engineer needs to implement, test, and ship explainability for hHGTN. This file is written in "planner mode": it lists mandatory phases, required code skeletons, tests, visualizations, scaling tips, and runbook commands so an agent can operate deterministically.
+
+---
+
+## 1) Quick summary (what this stage delivers)
+
+* Integrate post-hoc and learned explainers (GNNExplainer, PGExplainer / Parameterized Explainer, SubgraphX-style ranking, and temporal explainers) into the hHGTN pipeline.
+* Provide reproducible visualizations (pyvis / networkx / plotly) and human-friendly HTML reports for flagged fraud transactions.
+* Add unit/integration tests that verify consistency, reproducibility, and that explanations are stable under small perturbations.
+* Provide production-friendly options: on-demand explainer (compute per-request) and precompute/cache mode for hot nodes.
+
+---
+
+## 2) Scope & constraints
+
+* Target frameworks: PyTorch / PyTorch Geometric (preferred) or DGL (adapter layer). Implementations should support both where feasible.
+* Runtime: Not heavy-weight — run explainers on Colab/Kaggle for dev. For large graphs use sampled subgraph around the instance (k-hop) to keep explain time bounded.
+* Deliverables: `src/explainability/` package, `notebooks/explainability.ipynb`, visualizer script to export HTML reports.
+
+---
+
+## 3) High-level phases (must be followed in order)
+
+### Phase A — Utilities & Subgraph extraction (MANDATORY)
+
+1. Implement subgraph extraction helper `extract_khop_subgraph(graph, node_id, k=3, max_nodes=2000)` that returns adjacency, edge\_index, and mapping from original node ids to subgraph node indices.
+2. Support heterogeneous nodes & edge types: return per-type adjacency or canonical etypes representation suitable for RGCN/HGT.
+3. Add deterministic sampling (seeded) for reproducibility.
+
+**Validation:** extracted subgraph has `node_id` present, node count ≤ `max_nodes`, and deterministic for same seed.
+
+### Phase B — Explainability primitives
+
+1. Wrap PyG's `GNNExplainer` into `GNNExplainerWrapper` with standard interface:
+
+   * `explain_node(node_id, model, subgraph, label)` → returns `edge_mask, node_feat_mask, important_subgraph`
+2. Implement `PGExplainerTrainer` wrapper to train a mask-predictor on multiple explanation targets; save/load the trained explainer.
+3. Implement `HGNNExplainer` extension for heterogeneous GNNs: learn `W_r`-masks for relation weight matrices (see HGNNExplainer pseudocode). The wrapper should accept `ntypes/etypes` and produce per-relation importance.
+4. Provide an interface for temporal explainers (explainer for TGN-like models). Either reuse temporal explainer implementation (Explorer–Navigator style) or implement a simple temporal mask over events: keep event timestamps within window or mask events.
+
+**Validation:** wrapper returns masks in valid ranges \[0,1], `important_subgraph` reconstructs correctly when masks are applied, and results are reproducible with fixed seeds.
+
+### Phase C — Visualizer & Report generation
+
+1. Implement `visualizer.py` with functions:
+
+   * `visualize_subgraph(G, masks, node_meta, top_k=50)` — creates pyvis HTML and static networkx figures
+   * `explain_report(node_id, pred_prob, masks, top_features, explanation_text)` — produces an HTML summary for a single instance
+2. Provide `explain_batch_to_html(explanations, out_dir)` to persist multiple reports.
+
+**Validation:** HTML files open locally, subgraph highlights the target node and top edges, feature importance table present.
+
+### Phase D — Integration & API
+
+1. Add pipeline hook `explain_instance(node_id, mode='gnnexplainer'|'pg'|'hg'|'temporal', k=3)` that:
+
+   * extracts subgraph (Phase A)
+   * calls chosen explainer (Phase B)
+   * visualizes and stores report (Phase C)
+2. Add a HTTP endpoint (Flask lightweight) or CLI command to request explanations on-demand.
+
+**Validation:** `explain_instance` returns JSON small summary and writes HTML to disk; endpoint serves the HTML.
+
+### Phase E — Tests, Stability checks & Acceptance
+
+1. Unit tests for wrappers (shapes, ranges, no NaNs).
+2. Reproducibility test: run explainer twice with same seed → masks nearly identical (IoU > 0.95 for top-10 edges).
+3. Sanity checks: remove top-k edges → model prediction score drops significantly for the flagged class (use configurable threshold).
+4. Regression test against a saved golden explanation for a small sample dataset.
+
+**Acceptance:** explanations are reproducible, human-readable and saved; the explainers catch known injected patterns in synthetic smoke tests.
+
+---
+
+## 4) Required file structure
+
+```
+src/explainability/
+├── __init__.py
+├── extract_subgraph.py       # Phase A
+├── gnne_explainers.py       # wrappers for GNNExplainer, PGExplainer, HGNNExplainer
+├── temporal_explainer.py    # temporal explainer helpers / wrappers
+├── visualizer.py            # pyvis/html generators
+├── api.py                   # small Flask API for on-demand explain
+└── tests/
+    ├── test_extract.py
+    ├── test_explainers.py
+    └── test_visualizer.py
+
+notebooks/explainability.ipynb
+reports/explanations/<timestamped-htmls>
+```
+
+---
+
+## 5) Key implementation notes & code recipes
+
+### 5.1 Subgraph extraction (PyG-compatible)
+
+```python
+# extract_subgraph.py (sketch)
+from torch_geometric.utils import k_hop_subgraph
+
+def extract_khop_subgraph(node_id, num_hops, edge_index, num_nodes, relabel_nodes=True, max_nodes=2000, seed=0):
+    # returns sub_edge_index, sub_x, mapping, inv_mapping
+    subset, sub_edge_index, mapping, edge_mask = k_hop_subgraph(node_id, num_hops, edge_index, relabel_nodes=relabel_nodes)
+    if len(subset) > max_nodes:
+        # optionally reduce neighborhood deterministically (sample by degree or time)
+        pass
+    return subset, sub_edge_index, mapping, edge_mask
+```
+
+### 5.2 GNNExplainer wrapper (PyG)
+
+```python
+from torch_geometric.nn import GNNExplainer
+
+class GNNExplainerWrapper:
+    def __init__(self, model, epochs=200):
+        self.model = model
+        self.explainer = GNNExplainer(model, epochs=epochs)
+
+    def explain_node(self, node_id, x, edge_index, label=None):
+        node_feat_mask, edge_mask = self.explainer.explain_node(node_id, x, edge_index)
+        # mask is [0,1] floats; apply threshold or take top-k
+        return edge_mask, node_feat_mask
+```
+
+### 5.3 PGExplainer training recipe
+
+* Train a mask predictor network that inputs the node embeddings and outputs per-edge logits. Follow the PGExplainer paper/training loop: use a small training set of target nodes, compute ground-truth masks via GNNExplainer or heuristics, and optimize the mask-predictor to mimic them. Save `pg_explainer.pth` for inference.
+
+### 5.4 HGNNExplainer (heterogeneous)
+
+* Implement masks per relation weight matrix `W_r` (a small module of learnable mask scalars or small MLP that produces masks per relation). Use the HGNNExplainer pseudocode to collect per-relation importance.
+
+### 5.5 Temporal explainers
+
+* Two choices:
+
+  1. Use an existing temporal explainer implementation (Explorer–Navigator framework) if available.
+  2. Implement a pragmatic temporal masker: extract event sequence in the k-hop subgraph, learn a small mask over events (learnable logits per event) that when applied changes model prediction. Optimize by minimizing KL between original pred and masked-pred as in GNNExplainer.
+
+---
+
+## 6) Visualization & UI notes
+
+* Use `pyvis` to produce interactive HTML; network center node highlighted in yellow; important edges thicker and colored red/green based on positive/negative contribution.
+* Provide small metadata panel with:
+
+  * Node id, predicted label & probability
+  * Top-10 important neighbor nodes and edge types
+  * Top-5 important node features with contribution scores (from feature mask)
+* Save interactive HTML plus a static PNG snapshot for reports.
+* Provide "download JSON" containing `explanation = {node_id, masks, top_nodes, top_edges, feature_importance}` for programmatic analysis.
+
+---
+
+## 7) Testing recipes (unit/integration)
+
+1. **Unit**: For `extract_khop_subgraph`: assert `node_id` in subset; consistent mapping with inverse mapping.
+2. **Explainer shape**: given a small toy graph, `explain_node` returns `edge_mask.shape == num_edges_in_subgraph` and values in \[0,1].
+3. **Reproducibility**: run explainer twice with same seed; compute IoU on top-k edges.
+4. **Sanity**: zero-out top-k edges and assert target probability drops > delta (e.g., 0.1) for fraud class.
+5. **Integration smoke**: run `explain_instance` on 5 examples end-to-end and ensure HTML files are created.
+
+---
+
+## 8) Performance & scaling tips
+
+* Limit subgraph size (k and max\_nodes). For hot nodes precompute explanations offline and cache.
+* For PGExplainer, prefer pretraining a mask-predictor to speed up inference.
+* Batch explanations: process multiple nodes in parallel where possible, but ensure subgraphs do not overlap or remap node ids correctly.
+* Use sparse matrices and CPU memory when producing visualizations (pyvis) and avoid moving large graphs to GPU for explanation-only steps.
+
+---
+
+## 9) Acceptance criteria (what ‘done’ looks like)
+
+* `explain_instance(node)` returns JSON + writes HTML report.
+* Visual report clearly highlights the top contributing edges & nodes and lists top input features.
+* Reproducibility test passes (IoU > 0.9 for top-10 edges under fixed seed).
+* Sanity check removal: removing top-k edges reduces target probability by a configurable delta.
+* Integration tests pass in CI (small dataset snapshot).
+
+---
+
+## 10) Common pitfalls & debugging checklist
+
+* **Too-large subgraphs** → always limit k and max\_nodes.
+* **Non-deterministic outputs** → set seeds for PyTorch, numpy and any sampling calls.
+* **Noisy/contradictory explanations** → consider PGExplainer (learned masks) or cleaner baselines for ground-truth masks.
+* **Temporal models**: ensure the explainer respects causality / does not peek into the future when explaining.
+
+**Quick debug prints** (include while developing):
+
+```
+print(f"Explainer: node={node_id}, sub_nodes={len(subset)}, sub_edges={sub_edge_index.size(1)}")
+print(f"Top edge mask values: {edge_mask.topk(10).values}")
+print(f"Pred before/after removal: {p_before:.4f}/{p_after:.4f}")
+```
+
+---
+
+## 11) Runbook (developer-friendly commands)
+
+* Notebook dev on Colab:
+
+  1. `pip install torch-geometric pyvis networkx matplotlib` (follow PyG install guide for CUDA/PyTorch combo)
+  2. Upload `models/checkpoint.pth` and dataset snapshot
+  3. Run `notebooks/explainability.ipynb` executing the cell `explain_instance(12345)` to generate HTML report.
+
+* CLI (local):
+
+```
+python -m src.explainability.api --node 12345 --mode gnnexplainer --k 3
+# result saved under reports/explanations/2025-09-13_12345.html
+```
+
+---
+
+## 12) Deliverables checklist (to be ticked by the agent)
+
+* [ ] `extract_subgraph.py` implemented + unit tests
+* [ ] `gnne_explainers.py` with GNNExplainerWrapper + PGExplainerTrainer + HGNNExplainer
+* [ ] `temporal_explainer.py` implemented or adapter added
+* [ ] `visualizer.py` producing pyvis HTML + static images
+* [ ] `api.py` (simple Flask endpoint) or CLI
+* [ ] `notebooks/explainability.ipynb` demoing 5 examples
+* [ ] tests in `src/explainability/tests` passing on CI small snapshot
+
+---
+
+## 13) Agent behavior rules (short)
+
+* Always use deterministic seeds for extraction & explainers.
+* When running tests or scripts, **do not** immediately assume failures: capture the terminal output, inspect last 50 lines, and perform targeted fixes (see mini-prompt appended to main agent prompt file).
+* Persist explanation JSON and HTML for every run; never overwrite unless explicitly asked.
+
+---
+
+## Appendix: Helpful heuristics
+
+* Threshold for visual masks: default `t=0.7` (report top edges with mask >= t and top-k fallback).
+* When training PGExplainer, use at least 200 target nodes and augment with small perturbations for robustness.
+* For HGNNExplainer, per-relation masks help explain which relation types matter most (useful for fraud ops teams).
+
+---
+
+End of Stage 10 reference document.
