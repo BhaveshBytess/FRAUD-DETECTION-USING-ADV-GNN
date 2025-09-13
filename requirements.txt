@@ -4,6 +4,7 @@ scipy
 scikit-learn
 torch
 torchvision
+torch-geometric
 tqdm
 pyarrow
 networkx
@@ -14,3 +15,7 @@ xgboost
 tensorboard
 wandb
 PyYAML
+pyvis
+plotly
+flask
+flask-cors
