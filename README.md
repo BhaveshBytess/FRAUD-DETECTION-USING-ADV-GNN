@@ -31,12 +31,13 @@
 ## 🚀 Quick Start
 
 ### Try the Live Demo (Recommended)
-**One-click fraud detection service:**
+**Interactive Streamlit fraud detection demo:**
 ```bash
 git clone https://github.com/BhaveshBytess/FRAUD-DETECTION-USING-ADV-GNN.git
-cd FRAUD-DETECTION-USING-ADV-GNN/demo_service
-docker-compose up -d
-open http://localhost:8000  # Interactive demo with sample data
+cd FRAUD-DETECTION-USING-ADV-GNN/streamlit_demo
+pip install -r requirements.txt
+streamlit run app.py  
+# Open http://localhost:8501 for interactive demo
 ```
 
 ### Research & Experimentation
@@ -68,37 +69,44 @@ jupyter notebook notebooks/demo.ipynb
 
 ## 🚀 Live Demo Service
 
-**Try it now**: Complete production fraud detection service with interactive interface!
+**Try it now**: Interactive Streamlit fraud detection demo with beautiful visualizations!
 
 ### 🎯 **Quick Start**
 ```bash
-# Option 1: Docker (Recommended)
+# Clone and run the demo
 git clone https://github.com/BhaveshBytess/FRAUD-DETECTION-USING-ADV-GNN.git
-cd FRAUD-DETECTION-USING-ADV-GNN/demo_service
-docker-compose up -d
-open http://localhost:8000
-
-# Option 2: Local Setup  
-cd demo_service
+cd FRAUD-DETECTION-USING-ADV-GNN/streamlit_demo
 pip install -r requirements.txt
-uvicorn app:app --reload --port 8000
+streamlit run app.py
+
+# Open your browser to http://localhost:8501
 ```
 
 ### 🔧 **What You Get**
-- **Real-time API**: Instant fraud predictions with explanations
-- **Interactive Web Demo**: Visual graph analysis with D3.js
-- **Enterprise Security**: Rate limiting, input validation, XSS protection
-- **Comprehensive Testing**: 87% test success rate (24/28 tests passing)
-- **Auto Documentation**: OpenAPI specs at `/docs`
+- **🔍 Manual Transaction Entry**: Input any transaction and get instant fraud analysis
+- **📊 Sample Gallery**: Test pre-built fraud/legitimate examples
+- **📈 Batch Analysis**: Upload CSV files for bulk transaction processing  
+- **🧠 Model Insights**: Architecture overview and performance metrics
+- **🎨 Beautiful Interface**: Professional visualizations with interactive charts
+- **🕸️ Network Analysis**: Visual transaction relationship graphs
 
-### 📊 **API Example**
-```bash
-# Simple fraud prediction
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d @demo_service/samples/sample_predict.json
+### 📊 **Demo Features**
+```python
+# Real-time fraud prediction
+✅ Fraud Probability: 87.3%
+✅ Risk Level: HIGH  
+✅ Prediction: FRAUD
+✅ Confidence: 85.4%
 
-# Response: {"fraud_probability": 0.847, "predicted_label": "fraud", ...}
+# Human-readable explanations
+"Transaction flagged due to unusually high amount and 
+multiple connections to other flagged accounts."
+
+# Interactive visualizations
+- Risk factor bar charts
+- Network relationship graphs  
+- Feature importance analysis
+- Performance comparison charts
 ```
 
 ## 🧠 Smart & Adaptive
@@ -270,11 +278,10 @@ python src/train_baseline.py --config configs/han.yaml
 ## 📁 Project Structure
 
 ```
-├── demo_service/                       # 🚀 Production API Service
-│   ├── app.py                          # FastAPI application with fraud detection
-│   ├── static/index.html               # Interactive web demo interface
-│   ├── tests/                          # Comprehensive test suite (87% success)
-│   └── docker-compose.yml              # One-click deployment
+├── streamlit_demo/                     # 🚀 Interactive Demo Application
+│   ├── app.py                          # Main Streamlit fraud detection app
+│   ├── requirements.txt                # Demo dependencies
+│   └── DEMO_GUIDE.md                   # Demo usage instructions
 ├── src/                                # 🧠 Core ML Implementation
 │   ├── models/                         # hHGTN architecture components
 │   ├── explainability/                 # Human-readable explanations
@@ -293,19 +300,20 @@ python src/train_baseline.py --config configs/han.yaml
 ```
 
 ### Key Files for Review:
-- **`demo_service/`**: Complete production fraud detection API
+- **`streamlit_demo/app.py`**: Complete interactive fraud detection demo
+- **`streamlit_demo/DEMO_GUIDE.md`**: Demo usage and features guide
 - **`docs/STAGE_IMPLEMENTATION_ANALYSIS.md`**: Deep technical details
 - **`docs/EXPERIMENTAL_VALIDATION.md`**: Comprehensive test results
-- **`notebooks/demo.ipynb`**: Interactive demonstration
+- **`notebooks/demo.ipynb`**: Research analysis and training
 - **`src/models/`**: hHGTN implementation with all components
 
 ## 🔬 Technical Highlights
 
 ### 🚀 **Production Engineering**
-- **FastAPI Service**: Enterprise-grade fraud detection API with <500ms latency
-- **Docker Deployment**: Multi-stage containerization with health checks
-- **Security Framework**: Rate limiting, input validation, XSS protection
-- **Comprehensive Testing**: 87% test success rate with automated CI/CD
+- **Streamlit Demo**: Beautiful interactive fraud detection interface
+- **Real-time Processing**: <100ms predictions with visual feedback
+- **Professional UI**: Portfolio-ready interface with custom styling
+- **Comprehensive Demo**: Manual entry, sample gallery, batch analysis modes
 
 ### 🧠 **Research Innovation**
 - **hHGTN Architecture**: First unified hypergraph + temporal + curvature framework
@@ -316,7 +324,7 @@ python src/train_baseline.py --config configs/han.yaml
 ### 📊 **Validated Performance**
 - **89% AUC**: Outperforms baseline methods by +19% improvement
 - **Real-time Processing**: Sub-second predictions with scalable architecture
-- **Production Stability**: 99.7% uptime in 48-hour continuous testing
+- **Interactive Demo**: Professional interface showcasing all capabilities
 - **Cross-dataset**: Automatic adaptation to different fraud detection scenarios
 
 👉 **[Complete Technical Analysis](docs/STAGE_IMPLEMENTATION_ANALYSIS.md)**  
@@ -324,13 +332,12 @@ python src/train_baseline.py --config configs/han.yaml
 
 ## 🔬 Experiments
 
-### Production Demo Testing
+### Interactive Demo Testing
 ```bash
-# Test the live service
-cd demo_service
-python -m pytest tests/ -v                    # Run all tests (87% success rate)
-curl http://localhost:8000/predict -X POST    # Test API endpoint
-open http://localhost:8000/docs              # View API documentation
+# Run the Streamlit demo
+cd streamlit_demo
+streamlit run app.py                           # Launch interactive demo
+# Test different transaction scenarios in the web interface
 ```
 
 ### Research & Training
