@@ -1,8 +1,32 @@
 # FRAUD-DETECTION-USING-HHGTN (Heterogeneous Hypergraph Transformer Networks)
 
+> 🚨 **Advanced Fraud Detection with Graph Neural Networks** — real-time, explainable, production-ready.
+
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Tests](https://img.shields.io/badge/tests-87%25_passing-brightgreen)
+![License](https://img.shields.io/github/license/BhaveshBytess/FRAUD-DETECTION-USING-ADV-GNN)
+![Docker](https://img.shields.io/badge/docker-ready-blue)
+
 **hHGTN** is a compact pipeline that fuses hypergraph modeling, temporal memory and curvature-aware spectral filtering to detect multi-entity fraud rings. It's reproducible in Colab (one-click demo) and provides human-interpretable explanations for flagged transactions.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/BhaveshBytess/FRAUD-DETECTION-USING-ADV-GNN/blob/main/notebooks/HOWTO_Colab.ipynb)
+
+<p align="center">
+  <img src="assets/architecture.png" alt="hHGTN Architecture" width="600"/>
+</p>
+
+## 📑 Table of Contents
+- [Quick Start](#-quick-start)
+- [Docker Deployment](#docker-deployment-recommended)
+- [Performance Highlights](#-performance-highlights)
+- [Project Status](#-project-status---stage-14-complete-)
+- [Production Demo Service](#-new-production-demo-service---stage-14-)
+- [Explainability Framework](#-new-complete-explainability-framework-)
+- [Smart Dataset Adaptability](#-smart-dataset-adaptability-)
+- [Architecture Overview](#-architecture-overview)
+- [Experiments](#-experiments)
+- [Contributing](#-contributing)
+- [Resume Highlights](#-resume--portfolio-highlights)
 
 ## 🚀 Quick Start
 
@@ -60,7 +84,9 @@ docker run -it --rm -v $(pwd)/experiments:/app/experiments hhgtn-fraud-detection
 
 ### ✅ All Stages Complete:
 - **Stage 0-13**: Complete development pipeline ✅
-- **Stage 14**: **🎉 DEPLOYMENT & DEMO SERVICE** ✅ **JUST COMPLETED!**
+- **Stage 14**: **🎉 DEPLOYMENT & DEMO SERVICE** ✅ **COMPLETE!**
+
+📊 **[View Complete Stage Details](docs/STAGE_SUMMARY.md)**
 
 ## 🚀 NEW: Production Demo Service - Stage 14 ✨
 
@@ -319,13 +345,10 @@ See **[DATASET_ADAPTABILITY.md](DATASET_ADAPTABILITY.md)** for complete details.
 - ✅ **Complete Integration**: Full fraud detection pipeline with temporal modeling
 
 ### 🎯 Ready for Next Stage:
-- **Stage 8**: Self-supervised Learning & Advanced Training 🔄
+- **Future Research**: Self-supervised Learning, Advanced Training, Multi-task Learning
+- **Production Scaling**: Kubernetes, Monitoring, Real-world Datasets
 
-### 🎯 Project Roadmap (Stages 8-14):
-- Stage 8: Self-supervised Learning & Advanced Training
-- Stage 9: Ensemble Methods & Model Fusion
-- Stage 10: Multi-scale Analysis & Hyperparameter Optimization
-- Stages 11-14: Production, Deployment, Monitoring, and Real-time Systems
+📋 **[Complete Implementation Summary](docs/STAGE_SUMMARY.md)** | 🎯 **Project Roadmap**: Research → Production Complete ✅
 
 ## Data
 
@@ -930,11 +953,23 @@ docker run -it --rm -v $(pwd)/experiments:/app/experiments hhgtn
 
 See `HOWTO.md` for detailed reproduction instructions and `reproducibility.md` for exact commands.
 
-## 🎯 Next Steps (Advanced Research)
+## 🤝 Contributing
 
-- **Self-supervised Learning**: Pre-training on unlabeled graph structures for better representations
-- **Contrastive Learning**: Graph contrastive learning for improved node embeddings
-- **Advanced Training Techniques**: Curriculum learning, meta-learning, and few-shot learning
-- **Multi-task Learning**: Joint optimization across multiple fraud detection objectives
-- **Domain Adaptation**: Transfer learning across different financial networks and datasets
+We welcome pull requests, issues, and discussions! Whether you're interested in:
+- 🔬 **Research Contributions**: Novel GNN architectures, explainability methods
+- 🚀 **Production Features**: Performance optimization, security enhancements  
+- 📚 **Documentation**: Tutorials, examples, academic papers
+- 🐛 **Bug Reports**: Issues, improvements, testing
+
+Check out **[CONTRIBUTING.md](CONTRIBUTING.md)** for detailed guidelines.
+
+## 💼 Resume & Portfolio Highlights
+
+This project demonstrates complete ML lifecycle from research to production:
+- **Novel Architecture**: hHGTN with hypergraph + temporal + curvature modeling
+- **Production Ready**: FastAPI service with security and comprehensive testing
+- **Explainable AI**: Human-readable fraud explanations with interactive visualizations
+- **Performance**: 89% AUC, +6% improvement over baseline methods
+
+👉 **[Complete Resume Highlights](docs/RESUME_HIGHLIGHTS.md)** | 📊 **[Technical Documentation](docs/STAGE_SUMMARY.md)**
 
