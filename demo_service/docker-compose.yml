@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # hHGTN Demo Service
+  demo-service:
+    build:
+      context: .
+      target: production
+    container_name: hhgtn-demo
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - LOG_LEVEL=INFO
+      - MODEL_PATH=/app/experiments/demo/checkpoint_lite.ckpt
+      - MAPPINGS_PATH=/app/experiments/demo/demo_mappings.json
+    volumes:
+      # Mount demo data and models
+      - ./experiments/demo:/app/experiments/demo:ro
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - hhgtn-network
+
+  # Development service with hot reload
+  demo-service-dev:
+    build:
+      context: .
+      target: development
+    container_name: hhgtn-demo-dev
+    ports:
+      - "8001:8000"
+    environment:
+      - ENV=development
+      - LOG_LEVEL=DEBUG
+      - MODEL_PATH=/app/experiments/demo/checkpoint_lite.ckpt
+      - MAPPINGS_PATH=/app/experiments/demo/demo_mappings.json
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+    restart: unless-stopped
+    profiles:
+      - dev
+    networks:
+      - hhgtn-network
+
+  # Nginx reverse proxy (optional for production)
+  nginx:
+    image: nginx:alpine
+    container_name: hhgtn-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - demo-service
+    restart: unless-stopped
+    profiles:
+      - nginx
+    networks:
+      - hhgtn-network
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hhgtn-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - hhgtn-network
+
+networks:
+  hhgtn-network:
+    driver: bridge

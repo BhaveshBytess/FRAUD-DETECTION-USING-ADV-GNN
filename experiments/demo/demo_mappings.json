@@ -1,0 +1,46 @@
+{
+  "user_to_id": {
+    "user_12345": 1,
+    "user_67890": 2,
+    "test_user_123": 3
+  },
+  "merchant_to_id": {
+    "merchant_789": 1,
+    "merchant_456": 2,
+    "test_merchant_456": 3
+  },
+  "device_to_id": {
+    "device_abc123": 1,
+    "device_xyz789": 2
+  },
+  "ip_to_id": {
+    "192.168.1.100": 1,
+    "10.0.0.1": 2
+  },
+  "id_to_user": {
+    "1": "user_12345",
+    "2": "user_67890", 
+    "3": "test_user_123"
+  },
+  "id_to_merchant": {
+    "1": "merchant_789",
+    "2": "merchant_456",
+    "3": "test_merchant_456"
+  },
+  "id_to_device": {
+    "1": "device_abc123",
+    "2": "device_xyz789"
+  },
+  "id_to_ip": {
+    "1": "192.168.1.100",
+    "2": "10.0.0.1"
+  },
+  "metadata": {
+    "num_users": 1000,
+    "num_merchants": 500,
+    "num_devices": 2000,
+    "num_ips": 3000,
+    "created_at": "2025-09-14T08:00:00Z",
+    "version": "1.0.0"
+  }
+}
