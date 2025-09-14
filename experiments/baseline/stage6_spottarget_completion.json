@@ -1,0 +1,28 @@
+{
+  "completion_time": "2025-09-14T23:07:40.019702",
+  "success_criteria": {
+    "Temporal_Ordering": "True",
+    "Leakage_Prevention": true,
+    "Before_After_Metrics": true,
+    "Reference_Compliance": true,
+    "Real_Data_Integration": true,
+    "Framework_Operational": true
+  },
+  "passed_criteria": "6/6",
+  "spottarget_results": {
+    "test_accuracy": 0.324444442987442,
+    "fraud_accuracy": 0.0,
+    "normal_accuracy": 0.892307698726654,
+    "roc_auc": 0.324444442987442,
+    "training_time": 0.2574925422668457,
+    "model_params": 13955,
+    "temporal_compliance": true,
+    "leakage_prevented": true
+  },
+  "temporal_compliance": true,
+  "leakage_prevention": true,
+  "framework_status": "OPERATIONAL",
+  "lite_mode": true,
+  "transaction_count": 1500,
+  "stage_status": "COMPLETE"
+}

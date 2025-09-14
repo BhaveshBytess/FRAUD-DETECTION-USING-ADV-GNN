@@ -1,0 +1,6 @@
+Stage 5 Status: COMPLETE
+Success Criteria: 6/6
+GPU Available: False
+Device Used: cpu
+gSampler Available: True
+Ready for Stage 6: True
